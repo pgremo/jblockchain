@@ -52,7 +52,7 @@ public class BlockController {
     @RequestMapping(method = RequestMethod.PUT)
     void addBlock(@RequestBody Block block, @RequestParam(required = false) Boolean publish, HttpServletResponse response) {
         LOG.info("Add block " + Base64.encodeBase64String(block.getHash()));
-        boolean success = blockService.append(block);
+        var success = blockService.append(block);
 
         if (success) {
             response.setStatus(HttpServletResponse.SC_ACCEPTED);

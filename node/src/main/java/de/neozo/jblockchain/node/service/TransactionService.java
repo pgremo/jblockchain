@@ -26,7 +26,7 @@ public class TransactionService {
     /**
      * Pool of Transactions which are not included in a Block yet.
      */
-    private Set<Transaction> transactionPool = new HashSet<>();
+    private final Set<Transaction> transactionPool = new HashSet<>();
 
     @Autowired
     public TransactionService(AddressService addressService) {

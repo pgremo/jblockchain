@@ -31,8 +31,8 @@ public abstract class SignatureUtils {
      * @return KeyPair containg private and public key
      */
     public static KeyPair generateKeyPair() throws NoSuchProviderException, NoSuchAlgorithmException {
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DSA", "SUN");
-        SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
+        var keyGen = KeyPairGenerator.getInstance("DSA", "SUN");
+        var random = SecureRandom.getInstance("SHA1PRNG", "SUN");
         keyGen.initialize(1024, random);
         return keyGen.generateKeyPair();
     }
@@ -46,11 +46,11 @@ public abstract class SignatureUtils {
      */
     public static boolean verify(byte[] data, byte[] signature, byte[] publicKey) throws InvalidKeySpecException, NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         // construct a public key from raw bytes
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKey);
-        PublicKey publicKeyObj = keyFactory.generatePublic(keySpec);
+        var keySpec = new X509EncodedKeySpec(publicKey);
+        var publicKeyObj = keyFactory.generatePublic(keySpec);
 
         // do the verification
-        Signature sig = getSignatureObj();
+        var sig = getSignatureObj();
         sig.initVerify(publicKeyObj);
         sig.update(data);
         return sig.verify(signature);
@@ -64,11 +64,11 @@ public abstract class SignatureUtils {
      */
     public static byte[] sign(byte[] data, byte[] privateKey) throws Exception {
         // construct a PrivateKey-object from raw bytes
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKey);
-        PrivateKey privateKeyObj = keyFactory.generatePrivate(keySpec);
+        var keySpec = new PKCS8EncodedKeySpec(privateKey);
+        var privateKeyObj = keyFactory.generatePrivate(keySpec);
 
         // do the signage
-        Signature sig = getSignatureObj();
+        var sig = getSignatureObj();
         sig.initSign(privateKeyObj);
         sig.update(data);
         return sig.sign();

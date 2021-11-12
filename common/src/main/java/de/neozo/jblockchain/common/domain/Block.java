@@ -1,15 +1,15 @@
 package de.neozo.jblockchain.common.domain;
 
 
-import com.google.common.primitives.Longs;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toCollection;
 
 public class Block {
 
@@ -108,9 +108,9 @@ public class Block {
      * @return SHA256-hash as raw bytes
      */
     public byte[] calculateHash() {
-        byte[] hashableData = ArrayUtils.addAll(previousBlockHash, merkleRoot);
-        hashableData = ArrayUtils.addAll(hashableData, Longs.toByteArray(tries));
-        hashableData = ArrayUtils.addAll(hashableData, Longs.toByteArray(timestamp));
+        var hashableData = ArrayUtils.addAll(previousBlockHash, merkleRoot);
+        hashableData = ArrayUtils.addAll(hashableData, Transaction.toByteArray(tries));
+        hashableData = ArrayUtils.addAll(hashableData, Transaction.toByteArray(timestamp));
         return DigestUtils.sha256(hashableData);
     }
 
@@ -120,10 +120,10 @@ public class Block {
      * @return SHA256-hash as raw bytes
      */
     public byte[] calculateMerkleRoot() {
-        Queue<byte[]> hashQueue = new LinkedList<>(transactions.stream().map(Transaction::getHash).collect(Collectors.toList()));
+        var hashQueue = transactions.stream().map(Transaction::getHash).collect(toCollection(LinkedList::new));
         while (hashQueue.size() > 1) {
             // take 2 hashes from queue
-            byte[] hashableData = ArrayUtils.addAll(hashQueue.poll(), hashQueue.poll());
+            var hashableData = ArrayUtils.addAll(hashQueue.poll(), hashQueue.poll());
             // put new hash at end of queue
             hashQueue.add(DigestUtils.sha256(hashableData));
         }
@@ -135,7 +135,7 @@ public class Block {
      * @return int number of leading zeros
      */
     public int getLeadingZerosCount() {
-        for (int i = 0; i < getHash().length; i++) {
+        for (var i = 0; i < getHash().length; i++) {
             if (getHash()[i] != 0) {
                 return i;
             }

@@ -12,8 +12,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.addAll;
 
 
 @Service
@@ -23,7 +24,7 @@ public class BlockService {
 
     private final TransactionService transactionService;
 
-    private List<Block> blockchain = new ArrayList<>();
+    private final List<Block> blockchain = new ArrayList<>();
 
     @Autowired
     public BlockService(TransactionService transactionService) {
@@ -51,14 +52,13 @@ public class BlockService {
      * @return true if verifcation succeeds and Block was appended
      */
     public synchronized boolean append(Block block) {
-        if (verify(block)) {
-            blockchain.add(block);
+        if (!verify(block)) return false;
 
-            // remove transactions from pool
-            block.getTransactions().forEach(transactionService::remove);
-            return true;
-        }
-        return false;
+        blockchain.add(block);
+
+        // remove transactions from pool
+        block.getTransactions().forEach(transactionService::remove);
+        return true;
     }
 
     /**
@@ -67,8 +67,9 @@ public class BlockService {
      * @param restTemplate RestTemplate to use
      */
     public void retrieveBlockchain(Node node, RestTemplate restTemplate) {
-        Block[] blocks = restTemplate.getForObject(node.getAddress() + "/block", Block[].class);
-        Collections.addAll(blockchain, blocks);
+        var blocks = restTemplate.getForObject(node.getAddress() + "/block", Block[].class);
+        if (blocks == null) blocks = new Block[0];
+        addAll(blockchain, blocks);
         LOG.info("Retrieved " + blocks.length + " blocks from node " + node.getAddress());
     }
 
@@ -76,7 +77,7 @@ public class BlockService {
     private boolean verify(Block block) {
         // references last block in chain
         if (blockchain.size() > 0) {
-            byte[] lastBlockInChainHash = getLastBlock().getHash();
+            var lastBlockInChainHash = getLastBlock().getHash();
             if (!Arrays.equals(block.getPreviousBlockHash(), lastBlockInChainHash)) {
                 return false;
             }

@@ -2,16 +2,15 @@ package de.neozo.jblockchain.node.service;
 
 
 import de.neozo.jblockchain.common.domain.Block;
-import de.neozo.jblockchain.common.domain.Transaction;
 import de.neozo.jblockchain.node.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class MiningService implements Runnable {
@@ -22,7 +21,7 @@ public class MiningService implements Runnable {
     private final NodeService nodeService;
     private final BlockService blockService;
 
-    private AtomicBoolean runMiner = new AtomicBoolean(false);
+    private final AtomicBoolean runMiner = new AtomicBoolean(false);
 
 
     @Autowired
@@ -57,7 +56,7 @@ public class MiningService implements Runnable {
     @Override
     public void run() {
         while (runMiner.get()) {
-            Block block = mineBlock();
+            var block = mineBlock();
             if (block != null) {
                 // Found block! Append and publish
                 LOG.info("Mined block with " + block.getTransactions().size() + " transactions and nonce " + block.getTries());
@@ -69,12 +68,10 @@ public class MiningService implements Runnable {
     }
 
     private Block mineBlock() {
-        long tries = 0;
-
         // get previous hash and transactions
-        byte[] previousBlockHash = blockService.getLastBlock() != null ? blockService.getLastBlock().getHash() : null;
-        List<Transaction> transactions = transactionService.getTransactionPool()
-                .stream().limit(Config.MAX_TRANSACTIONS_PER_BLOCK).collect(Collectors.toList());
+        var previousBlockHash = blockService.getLastBlock() != null ? blockService.getLastBlock().getHash() : null;
+        var transactions = transactionService.getTransactionPool()
+                .stream().limit(Config.MAX_TRANSACTIONS_PER_BLOCK).collect(toList());
 
         // sleep if no more transactions left
         if (transactions.isEmpty()) {
@@ -88,8 +85,9 @@ public class MiningService implements Runnable {
         }
 
         // try new block until difficulty is sufficient
+        var tries = 0L;
         while (runMiner.get()) {
-            Block block = new Block(previousBlockHash, transactions, tries);
+            var block = new Block(previousBlockHash, transactions, tries);
             if (block.getLeadingZerosCount() >= Config.DIFFICULTY) {
                 return block;
             }

@@ -29,7 +29,7 @@ import java.security.NoSuchProviderException;
  */
 public class BlockchainClient {
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         CommandLineParser parser = new DefaultParser();
         Options options = getOptions();
         try {

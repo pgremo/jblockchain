@@ -4,28 +4,28 @@ package de.neozo.jblockchain.node.service;
 import de.neozo.jblockchain.common.SignatureUtils;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Transaction;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.security.KeyPair;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 public class MiningServiceTests {
 
-    @Autowired private MiningService miningService;
-    @Autowired private TransactionService transactionService;
-    @Autowired private AddressService addressService;
+    @Autowired
+    private MiningService miningService;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private AddressService addressService;
 
     private Address address;
     private KeyPair keyPair;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         keyPair = SignatureUtils.generateKeyPair();
         address = new Address("Max Mustermann", keyPair.getPublic().getEncoded());
@@ -33,7 +33,7 @@ public class MiningServiceTests {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void startStopMiner() throws Exception {
         final int initalTransactions = 100;
         addTransactions(initalTransactions);

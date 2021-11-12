@@ -14,9 +14,10 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PreDestroy;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import static java.util.Collections.addAll;
 
 
 @Service
@@ -29,8 +30,8 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
     private final AddressService addressService;
 
     private Node self;
-    private Set<Node> knownNodes = new HashSet<>();
-    private RestTemplate restTemplate = new RestTemplate();
+    private final Set<Node> knownNodes = new HashSet<>();
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Autowired
     public NodeService(BlockService blockService, TransactionService transactionService, AddressService addressService) {
@@ -123,8 +124,9 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
      * @param restTemplate RestTemplate to use
      */
     public void retrieveKnownNodes(Node node, RestTemplate restTemplate) {
-        Node[] nodes = restTemplate.getForObject(node.getAddress() + "/node", Node[].class);
-        Collections.addAll(knownNodes, nodes);
+        var nodes = restTemplate.getForObject(node.getAddress() + "/node", Node[].class);
+        if (nodes == null) nodes = new Node[0];
+        addAll(knownNodes, nodes);
         LOG.info("Retrieved " + nodes.length + " nodes from node " + node.getAddress());
     }
 

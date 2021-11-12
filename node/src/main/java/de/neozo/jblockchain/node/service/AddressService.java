@@ -9,10 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 
 @Service
@@ -23,7 +24,7 @@ public class AddressService {
     /**
      * Mapping of Address hash -> Address object
      */
-    private Map<String, Address> addresses = new HashMap<>();
+    private final Map<String, Address> addresses = new HashMap<>();
 
     /**
      * Get a specific Address
@@ -56,8 +57,9 @@ public class AddressService {
      * @param restTemplate RestTemplate to use
      */
     public void retrieveAddresses(Node node, RestTemplate restTemplate) {
-        Address[] addresses = restTemplate.getForObject(node.getAddress() + "/address", Address[].class);
-        Arrays.asList(addresses).forEach(this::add);
+        var addresses = restTemplate.getForObject(node.getAddress() + "/address", Address[].class);
+        if (addresses == null) addresses = new Address[0];
+        asList(addresses).forEach(this::add);
         LOG.info("Retrieved " + addresses.length + " addresses from node " + node.getAddress());
     }
 }

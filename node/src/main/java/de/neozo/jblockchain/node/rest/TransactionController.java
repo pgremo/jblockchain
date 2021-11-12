@@ -50,7 +50,7 @@ public class TransactionController {
     @RequestMapping(method = RequestMethod.PUT)
     void addTransaction(@RequestBody Transaction transaction, @RequestParam(required = false) Boolean publish, HttpServletResponse response) {
         LOG.info("Add transaction " + Base64.encodeBase64String(transaction.getHash()));
-        boolean success = transactionService.add(transaction);
+        var success = transactionService.add(transaction);
 
         if (success) {
             response.setStatus(HttpServletResponse.SC_ACCEPTED);

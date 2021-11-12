@@ -5,67 +5,67 @@ import de.neozo.jblockchain.common.SignatureUtils;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Block;
 import de.neozo.jblockchain.common.domain.Transaction;
-import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 public class BlockServiceTests {
 
-    private final static byte[] fixedSignature = new byte[] {48, 44, 2, 20, 89, 48, -114, -49, 36, 65, 116, -5, 88, 6, -38, -110, -30, -73, 59, -53, 19, -49, 122, 90, 2, 20, 111, 38, 55, -120, -125, 17, -66, -8, -121, 85, 31, -82, -80, -31, -33, 116, 121, -90, 123, -113};
+    private final static byte[] fixedSignature = new byte[]{48, 44, 2, 20, 89, 48, -114, -49, 36, 65, 116, -5, 88, 6, -38, -110, -30, -73, 59, -53, 19, -49, 122, 90, 2, 20, 111, 38, 55, -120, -125, 17, -66, -8, -121, 85, 31, -82, -80, -31, -33, 116, 121, -90, 123, -113};
 
-    @Autowired private BlockService blockService;
-    @Autowired private TransactionService transactionService;
-    @Autowired private AddressService addressService;
+    @Autowired
+    private BlockService blockService;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private AddressService addressService;
 
     private Address address;
     private byte[] privateKey;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
-        privateKey = IOUtils.toByteArray(Thread.currentThread().getContextClassLoader().getResourceAsStream("key.priv"));
-        byte[] publicKey = IOUtils.toByteArray(Thread.currentThread().getContextClassLoader().getResourceAsStream("key.pub"));
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        privateKey = classLoader.getResourceAsStream("key.priv").readAllBytes();
+        var publicKey = classLoader.getResourceAsStream("key.pub").readAllBytes();
         address = new Address("Max Mustermann", publicKey);
         addressService.add(address);
     }
 
     @Test
-    public void addBlock_validHash() throws Exception {
+    public void addBlock_validHash() {
         Block block = new Block(null, Collections.singletonList(generateStableTransaction()), 4847556);
         block.setTimestamp(42); // need stable hash
         block.setHash(block.calculateHash());
         boolean success = blockService.append(block);
-        Assert.assertTrue(success);
+        Assertions.assertTrue(success);
     }
 
     @Test
     public void addBlock_invalidHash() throws Exception {
         Block block = new Block(null, generateTransactions(1), 42);
         boolean success = blockService.append(block);
-        Assert.assertFalse(success);
+        Assertions.assertFalse(success);
     }
 
     @Test
     public void addBlock_invalidLimitExceeded() throws Exception {
         Block block = new Block(null, generateTransactions(6), 42);
         boolean success = blockService.append(block);
-        Assert.assertFalse(success);
+        Assertions.assertFalse(success);
     }
 
-    @Ignore
+    @Disabled
     @Test
-    public void addBlock_generateBlock() throws Exception {
+    public void addBlock_generateBlock() {
         List<Transaction> transactions = Collections.singletonList(generateStableTransaction());
         boolean success = false;
         int nonce = 0;
