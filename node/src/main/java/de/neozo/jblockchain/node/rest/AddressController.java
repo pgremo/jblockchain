@@ -4,13 +4,13 @@ package de.neozo.jblockchain.node.rest;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.node.service.AddressService;
 import de.neozo.jblockchain.node.service.NodeService;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Base64;
 import java.util.Collection;
 
 
@@ -47,7 +47,7 @@ public class AddressController {
      */
     @RequestMapping(method = RequestMethod.PUT)
     void addAddress(@RequestBody Address address, @RequestParam(required = false) Boolean publish, HttpServletResponse response) {
-        LOG.info("Add address " + Base64.encodeBase64String(address.getHash()));
+        LOG.info("Add address " + Base64.getEncoder().encodeToString(address.getHash()));
 
         if (addressService.getByHash(address.getHash()) == null) {
             addressService.add(address);

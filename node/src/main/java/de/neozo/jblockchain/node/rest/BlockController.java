@@ -5,13 +5,13 @@ import de.neozo.jblockchain.common.domain.Block;
 import de.neozo.jblockchain.node.service.BlockService;
 import de.neozo.jblockchain.node.service.MiningService;
 import de.neozo.jblockchain.node.service.NodeService;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Base64;
 import java.util.List;
 
 
@@ -51,7 +51,7 @@ public class BlockController {
      */
     @RequestMapping(method = RequestMethod.PUT)
     void addBlock(@RequestBody Block block, @RequestParam(required = false) Boolean publish, HttpServletResponse response) {
-        LOG.info("Add block " + Base64.encodeBase64String(block.getHash()));
+        LOG.info("Add block " + Base64.getEncoder().encodeToString(block.getHash()));
         var success = blockService.append(block);
 
         if (success) {

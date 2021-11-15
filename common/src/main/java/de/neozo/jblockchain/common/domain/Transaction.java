@@ -1,9 +1,8 @@
 package de.neozo.jblockchain.common.domain;
 
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.ArrayUtils;
-
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 public class Transaction {
@@ -101,13 +100,20 @@ public class Transaction {
 
     /**
      * Calculates the hash using relevant fields of this type
+     *
      * @return SHA256-hash as raw bytes
      */
     public byte[] calculateHash() {
-        var hashableData = ArrayUtils.addAll(text.getBytes(), senderHash);
-        hashableData = ArrayUtils.addAll(hashableData, signature);
-        hashableData = ArrayUtils.addAll(hashableData, toByteArray(timestamp));
-        return DigestUtils.sha256(hashableData);
+        try {
+            var digest = MessageDigest.getInstance("SHA-256");
+            digest.update(text.getBytes());
+            digest.update(senderHash);
+            digest.update(signature);
+            digest.update(toByteArray(timestamp));
+            return digest.digest();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

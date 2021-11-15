@@ -1,13 +1,11 @@
 package de.neozo.jblockchain.common.domain;
 
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.ArrayUtils;
-
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toCollection;
 
@@ -105,42 +103,56 @@ public class Block {
 
     /**
      * Calculates the hash using relevant fields of this type
+     *
      * @return SHA256-hash as raw bytes
      */
     public byte[] calculateHash() {
-        var hashableData = ArrayUtils.addAll(previousBlockHash, merkleRoot);
-        hashableData = ArrayUtils.addAll(hashableData, Transaction.toByteArray(tries));
-        hashableData = ArrayUtils.addAll(hashableData, Transaction.toByteArray(timestamp));
-        return DigestUtils.sha256(hashableData);
+        try {
+            var digest = MessageDigest.getInstance("SHA-256");
+            digest.update(previousBlockHash);
+            digest.update(Transaction.toByteArray(tries));
+            digest.update(Transaction.toByteArray(timestamp));
+            return digest.digest();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * Calculates the Hash of all transactions as hash tree.
      * https://en.wikipedia.org/wiki/Merkle_tree
+     *
      * @return SHA256-hash as raw bytes
      */
     public byte[] calculateMerkleRoot() {
-        var hashQueue = transactions.stream().map(Transaction::getHash).collect(toCollection(LinkedList::new));
-        while (hashQueue.size() > 1) {
-            // take 2 hashes from queue
-            var hashableData = ArrayUtils.addAll(hashQueue.poll(), hashQueue.poll());
-            // put new hash at end of queue
-            hashQueue.add(DigestUtils.sha256(hashableData));
+        try {
+            var digest = MessageDigest.getInstance("SHA-256");
+            var hashQueue = transactions.stream().map(Transaction::getHash).collect(toCollection(LinkedList::new));
+            while (hashQueue.size() > 1) {
+                digest.update(hashQueue.poll());
+                digest.update(hashQueue.poll());
+                hashQueue.add(digest.digest());
+                digest.reset();
+            }
+            return hashQueue.poll();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
-        return hashQueue.poll();
     }
 
     /**
      * Count the number of bytes in the hash, which are zero at the beginning
+     *
      * @return int number of leading zeros
      */
     public int getLeadingZerosCount() {
-        for (var i = 0; i < getHash().length; i++) {
+        int length = getHash().length;
+        for (var i = 0; i < length; i++) {
             if (getHash()[i] != 0) {
                 return i;
             }
         }
-        return getHash().length;
+        return length;
     }
 
     @Override

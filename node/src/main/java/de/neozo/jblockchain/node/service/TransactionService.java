@@ -5,7 +5,6 @@ import de.neozo.jblockchain.common.SignatureUtils;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Node;
 import de.neozo.jblockchain.common.domain.Transaction;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +71,7 @@ public class TransactionService {
         // correct signature
         Address sender = addressService.getByHash(transaction.getSenderHash());
         if (sender == null) {
-            LOG.warn("Unknown address " + Base64.encodeBase64String(transaction.getSenderHash()));
+            LOG.warn("Unknown address " + Base64.getEncoder().encodeToString(transaction.getSenderHash()));
             return false;
         }
 

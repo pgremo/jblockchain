@@ -3,12 +3,12 @@ package de.neozo.jblockchain.node.service;
 
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Node;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class AddressService {
      * @return Matching Address for hash
      */
     public Address getByHash(byte[] hash) {
-        return addresses.get(Base64.encodeBase64String(hash));
+        return addresses.get(Base64.getEncoder().encodeToString(hash));
     }
 
     /**
@@ -48,7 +48,7 @@ public class AddressService {
      * @param address Address to add
      */
     public synchronized void add(Address address) {
-        addresses.put(Base64.encodeBase64String(address.getHash()), address);
+        addresses.put(Base64.getEncoder().encodeToString(address.getHash()), address);
     }
 
     /**

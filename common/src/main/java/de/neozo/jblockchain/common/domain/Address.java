@@ -1,8 +1,7 @@
 package de.neozo.jblockchain.common.domain;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.ArrayUtils;
-
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 public class Address {
@@ -58,11 +57,18 @@ public class Address {
 
     /**
      * Calculates the hash using relevant fields of this type
+     *
      * @return SHA256-hash as raw bytes
      */
     private byte[] calculateHash() {
-        var hashableData = ArrayUtils.addAll(name.getBytes(), publicKey);
-        return DigestUtils.sha256(hashableData);
+        try {
+            var digest = MessageDigest.getInstance("SHA-256");
+            digest.update(name.getBytes());
+            digest.update(publicKey);
+            return digest.digest();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
