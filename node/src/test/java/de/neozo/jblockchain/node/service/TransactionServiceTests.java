@@ -4,13 +4,16 @@ package de.neozo.jblockchain.node.service;
 import de.neozo.jblockchain.common.SignatureUtils;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Transaction;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.security.KeyPair;
+import java.time.Clock;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 public class TransactionServiceTests {
@@ -32,34 +35,31 @@ public class TransactionServiceTests {
 
     @Test
     public void addTransaction_valid() throws Exception {
-        String text = "Lorem Ipsum";
-        byte[] signature = SignatureUtils.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-        Transaction transaction = new Transaction(text, address.getHash(), signature);
+        var text = "Lorem Ipsum";
+        var signature = SignatureUtils.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
+        var transaction = new Transaction(text, address.getHash(), signature, Clock.systemUTC());
 
-        boolean success = transactionService.add(transaction);
-        Assertions.assertTrue(success);
+        assertTrue(transactionService.add(transaction));
     }
 
     @Test
     public void addTransaction_invalidText() throws Exception {
-        String text = "Lorem Ipsum";
-        byte[] signature = SignatureUtils.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-        Transaction transaction = new Transaction("Fake text!!!", address.getHash(), signature);
+        var text = "Lorem Ipsum";
+        var signature = SignatureUtils.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
+        var transaction = new Transaction("Fake text!!!", address.getHash(), signature, Clock.systemUTC());
 
-        boolean success = transactionService.add(transaction);
-        Assertions.assertFalse(success);
+        assertFalse(transactionService.add(transaction));
     }
 
     @Test
     public void addTransaction_invalidSender() throws Exception {
-        Address addressPresident = new Address("Mr. President", SignatureUtils.generateKeyPair().getPublic().getEncoded());
+        var addressPresident = new Address("Mr. President", SignatureUtils.generateKeyPair().getPublic().getEncoded());
         addressService.add(addressPresident);
 
-        String text = "Lorem Ipsum";
-        byte[] signature = SignatureUtils.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-        Transaction transaction = new Transaction(text, addressPresident.getHash(), signature);
+        var text = "Lorem Ipsum";
+        var signature = SignatureUtils.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
+        var transaction = new Transaction(text, addressPresident.getHash(), signature, Clock.systemUTC());
 
-        boolean success = transactionService.add(transaction);
-        Assertions.assertFalse(success);
+        assertFalse(transactionService.add(transaction));
     }
 }

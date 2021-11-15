@@ -2,14 +2,16 @@ package de.neozo.jblockchain.node.service;
 
 
 import de.neozo.jblockchain.common.domain.Block;
-import de.neozo.jblockchain.node.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static de.neozo.jblockchain.node.Config.DIFFICULTY;
+import static de.neozo.jblockchain.node.Config.MAX_TRANSACTIONS_PER_BLOCK;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -22,13 +24,15 @@ public class MiningService implements Runnable {
     private final BlockService blockService;
 
     private final AtomicBoolean runMiner = new AtomicBoolean(false);
+    private final Clock clock;
 
 
     @Autowired
-    public MiningService(TransactionService transactionService, NodeService nodeService, BlockService blockService) {
+    public MiningService(TransactionService transactionService, NodeService nodeService, BlockService blockService, Clock clock) {
         this.transactionService = transactionService;
         this.nodeService = nodeService;
         this.blockService = blockService;
+        this.clock = clock;
     }
 
     /**
@@ -69,9 +73,9 @@ public class MiningService implements Runnable {
 
     private Block mineBlock() {
         // get previous hash and transactions
-        var previousBlockHash = blockService.getLastBlock() != null ? blockService.getLastBlock().getHash() : null;
+        var previousBlockHash = blockService.getLastBlock() == null ? null : blockService.getLastBlock().getHash();
         var transactions = transactionService.getTransactionPool()
-                .stream().limit(Config.MAX_TRANSACTIONS_PER_BLOCK).collect(toList());
+                .stream().limit(MAX_TRANSACTIONS_PER_BLOCK).collect(toList());
 
         // sleep if no more transactions left
         if (transactions.isEmpty()) {
@@ -87,8 +91,8 @@ public class MiningService implements Runnable {
         // try new block until difficulty is sufficient
         var tries = 0L;
         while (runMiner.get()) {
-            var block = new Block(previousBlockHash, transactions, tries);
-            if (block.getLeadingZerosCount() >= Config.DIFFICULTY) {
+            var block = new Block(previousBlockHash, transactions, tries, clock);
+            if (block.getLeadingZerosCount() >= DIFFICULTY) {
                 return block;
             }
             tries++;

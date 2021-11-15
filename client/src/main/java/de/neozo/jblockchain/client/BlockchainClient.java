@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.time.Clock;
 import java.util.Base64;
 
 
@@ -30,10 +31,10 @@ import java.util.Base64;
 public class BlockchainClient {
 
     public static void main(String[] args) throws Exception {
-        CommandLineParser parser = new DefaultParser();
-        Options options = getOptions();
+        var parser = new DefaultParser();
+        var options = getOptions();
         try {
-            CommandLine line = parser.parse(options, args);
+            var line = parser.parse(options, args);
             executeCommand(line);
         } catch (ParseException e) {
             System.err.println(e.getMessage());
@@ -46,19 +47,19 @@ public class BlockchainClient {
         if (line.hasOption("keypair")) {
             generateKeyPair();
         } else if (line.hasOption("address")) {
-            String node = line.getOptionValue("node");
-            String name = line.getOptionValue("name");
-            String publickey = line.getOptionValue("publickey");
+            var node = line.getOptionValue("node");
+            var name = line.getOptionValue("name");
+            var publickey = line.getOptionValue("publickey");
             if (node == null || name == null || publickey == null) {
                 throw new ParseException("node, name and publickey is required");
             }
             publishAddress(new URL(node), Paths.get(publickey), name);
 
         } else if (line.hasOption("transaction")) {
-            String node = line.getOptionValue("node");
-            String message = line.getOptionValue("message");
-            String sender = line.getOptionValue("sender");
-            String privatekey = line.getOptionValue("privatekey");
+            var node = line.getOptionValue("node");
+            var message = line.getOptionValue("message");
+            var sender = line.getOptionValue("sender");
+            var privatekey = line.getOptionValue("privatekey");
             if (node == null || message == null || sender == null || privatekey == null) {
                 throw new ParseException("node, message, sender and privatekey is required");
             }
@@ -67,13 +68,13 @@ public class BlockchainClient {
     }
 
     private static Options getOptions() {
-        OptionGroup actions = new OptionGroup();
+        var actions = new OptionGroup();
         actions.addOption(new Option("k", "keypair", false, "generate private/public key pair"));
         actions.addOption(new Option("a", "address", false, "publish new address"));
         actions.addOption(new Option("t", "transaction", false, "publish new transaction"));
         actions.setRequired(true);
 
-        Options options = new Options();
+        var options = new Options();
         options.addOptionGroup(actions);
         options.addOption(Option.builder("o")
                 .longOpt("node")
@@ -116,22 +117,22 @@ public class BlockchainClient {
     }
 
     private static void generateKeyPair() throws NoSuchProviderException, NoSuchAlgorithmException, IOException {
-        KeyPair keyPair = SignatureUtils.generateKeyPair();
+        var keyPair = SignatureUtils.generateKeyPair();
         Files.write(Paths.get("key.priv"), keyPair.getPrivate().getEncoded());
         Files.write(Paths.get("key.pub"), keyPair.getPublic().getEncoded());
     }
 
     private static void publishAddress(URL node, Path publicKey, String name) throws IOException {
-        RestTemplate restTemplate = new RestTemplate();
-        Address address = new Address(name, Files.readAllBytes(publicKey));
+        var restTemplate = new RestTemplate();
+        var address = new Address(name, Files.readAllBytes(publicKey));
         restTemplate.put(node.toString() + "/address?publish=true", address);
         System.out.println("Hash of new address: " + Base64.getEncoder().encodeToString(address.getHash()));
     }
 
     private static void publishTransaction(URL node, Path privateKey, String text, byte[] senderHash) throws Exception {
-        RestTemplate restTemplate = new RestTemplate();
-        byte[] signature = SignatureUtils.sign(text.getBytes(), Files.readAllBytes(privateKey));
-        Transaction transaction = new Transaction(text, senderHash, signature);
+        var restTemplate = new RestTemplate();
+        var signature = SignatureUtils.sign(text.getBytes(), Files.readAllBytes(privateKey));
+        var transaction = new Transaction(text, senderHash, signature, Clock.systemUTC());
         restTemplate.put(node.toString() + "/transaction?publish=true", transaction);
         System.out.println("Hash of new transaction: " + Base64.getEncoder().encodeToString(transaction.getHash()));
     }

@@ -13,6 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 import java.util.Collection;
 
+import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_ACCEPTABLE;
+
 
 @RestController()
 @RequestMapping("address")
@@ -31,6 +34,7 @@ public class AddressController {
 
     /**
      * Get all Addresses this node knows
+     *
      * @return JSON list of Addresses
      */
     @RequestMapping
@@ -41,8 +45,9 @@ public class AddressController {
 
     /**
      * Add a new Address
-     * @param address the Address to add
-     * @param publish if true, this Node is going to inform all other Nodes about the new Address
+     *
+     * @param address  the Address to add
+     * @param publish  if true, this Node is going to inform all other Nodes about the new Address
      * @param response Status Code 202 if Address was added, 406 if submitted hash is already present
      */
     @RequestMapping(method = RequestMethod.PUT)
@@ -55,9 +60,9 @@ public class AddressController {
             if (publish != null && publish) {
                 nodeService.broadcastPut("address", address);
             }
-            response.setStatus(HttpServletResponse.SC_ACCEPTED);
+            response.setStatus(SC_ACCEPTED);
         } else {
-            response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+            response.setStatus(SC_NOT_ACCEPTABLE);
         }
     }
 

@@ -3,6 +3,7 @@ package de.neozo.jblockchain.common.domain;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.util.Arrays;
 
 public class Transaction {
@@ -46,7 +47,7 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(String text, byte[] senderHash, byte[] signature) {
+    public Transaction(String text, byte[] senderHash, byte[] signature, Clock clock) {
         this.text = text;
         this.senderHash = senderHash;
         this.signature = signature;
@@ -66,24 +67,12 @@ public class Transaction {
         return text;
     }
 
-    public void setText(String text) {
-        this.text = text;
-    }
-
     public byte[] getSenderHash() {
         return senderHash;
     }
 
-    public void setSenderHash(byte[] senderHash) {
-        this.senderHash = senderHash;
-    }
-
     public byte[] getSignature() {
         return signature;
-    }
-
-    public void setSignature(byte[] signature) {
-        this.signature = signature;
     }
 
     public long getTimestamp() {

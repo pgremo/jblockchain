@@ -5,16 +5,20 @@ import de.neozo.jblockchain.common.SignatureUtils;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Block;
 import de.neozo.jblockchain.common.domain.Transaction;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 public class BlockServiceTests {
@@ -33,7 +37,7 @@ public class BlockServiceTests {
 
     @BeforeEach
     public void setUp() throws Exception {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        var classLoader = Thread.currentThread().getContextClassLoader();
         privateKey = classLoader.getResourceAsStream("key.priv").readAllBytes();
         var publicKey = classLoader.getResourceAsStream("key.pub").readAllBytes();
         address = new Address("Max Mustermann", publicKey);
@@ -42,48 +46,42 @@ public class BlockServiceTests {
 
     @Test
     public void addBlock_validHash() {
-        Block block = new Block(null, Collections.singletonList(generateStableTransaction()), 4847556);
-        block.setTimestamp(42); // need stable hash
-        block.setHash(block.calculateHash());
-        boolean success = blockService.append(block);
-        Assertions.assertTrue(success);
+        var block = new Block(null, List.of(generateStableTransaction()), 468932, Clock.fixed(Instant.ofEpochMilli(42), ZoneId.systemDefault()));
+        assertTrue(blockService.append(block));
     }
 
     @Test
     public void addBlock_invalidHash() throws Exception {
-        Block block = new Block(null, generateTransactions(1), 42);
-        boolean success = blockService.append(block);
-        Assertions.assertFalse(success);
+        var block = new Block(null, generateTransactions(1), 42, Clock.systemUTC());
+        assertFalse(blockService.append(block));
     }
 
     @Test
     public void addBlock_invalidLimitExceeded() throws Exception {
-        Block block = new Block(null, generateTransactions(6), 42);
-        boolean success = blockService.append(block);
-        Assertions.assertFalse(success);
+        var block = new Block(null, generateTransactions(6), 42, Clock.systemUTC());
+        assertFalse(blockService.append(block));
     }
 
     @Disabled
     @Test
     public void addBlock_generateBlock() {
-        List<Transaction> transactions = Collections.singletonList(generateStableTransaction());
-        boolean success = false;
-        int nonce = 0;
+        var transactions = List.of(generateStableTransaction());
+        var success = false;
+        var nonce = 0;
+        var clock = Clock.fixed(Instant.ofEpochMilli(42), ZoneId.systemDefault());
         while (!success) {
-            Block block = new Block(null, transactions, nonce);
-            block.setTimestamp(42); // need stable hash
-            block.setHash(block.calculateHash());
+            var block = new Block(null, transactions, nonce, clock);
             success = blockService.append(block);
             nonce++;
         }
     }
 
     private List<Transaction> generateTransactions(int count) throws Exception {
-        List<Transaction> transactions = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            String text = "Hello " + i;
-            byte[] signature = SignatureUtils.sign(text.getBytes(), privateKey);
-            Transaction transaction = new Transaction(text, address.getHash(), signature);
+        var transactions = new ArrayList<Transaction>();
+        for (var i = 0; i < count; i++) {
+            var text = "Hello %d".formatted(i);
+            var signature = SignatureUtils.sign(text.getBytes(), privateKey);
+            var transaction = new Transaction(text, address.getHash(), signature, Clock.systemUTC());
 
             transactionService.add(transaction);
             transactions.add(transaction);
@@ -92,10 +90,12 @@ public class BlockServiceTests {
     }
 
     private Transaction generateStableTransaction() {
-        String text = "Hello 0";
-        Transaction transaction = new Transaction(text, address.getHash(), fixedSignature);
-        transaction.setTimestamp(42); // need stable hash
-        transaction.setHash(transaction.calculateHash());
+        var transaction = new Transaction(
+                "Hello 0",
+                address.getHash(),
+                fixedSignature,
+                Clock.fixed(Instant.ofEpochSecond(42), ZoneId.systemDefault())
+        );
 
         transactionService.add(transaction);
         return transaction;

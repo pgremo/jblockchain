@@ -43,7 +43,7 @@ public class NodeController {
      */
     @RequestMapping(method = RequestMethod.PUT)
     void addNode(@RequestBody Node node) {
-        LOG.info("Add node " + node.getAddress());
+        LOG.info("Add node " + node.address());
         nodeService.add(node);
     }
 
@@ -53,7 +53,7 @@ public class NodeController {
      */
     @RequestMapping(path = "remove", method = RequestMethod.POST)
     void removeNode(@RequestBody Node node) {
-        LOG.info("Remove node " + node.getAddress());
+        LOG.info("Remove node " + node.address());
         nodeService.remove(node);
     }
 

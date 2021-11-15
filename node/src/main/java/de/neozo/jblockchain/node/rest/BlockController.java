@@ -14,6 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 import java.util.List;
 
+import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_ACCEPTABLE;
+
 
 @RestController
 @RequestMapping("block")
@@ -34,6 +37,7 @@ public class BlockController {
 
     /**
      * Retrieve all Blocks in order of mine date, also known as Blockchain
+     *
      * @return JSON list of Blocks
      */
     @RequestMapping
@@ -45,8 +49,8 @@ public class BlockController {
      * Add a new Block at the end of the Blockchain.
      * It is expected that the Block is valid, see BlockService.verify(Block) for details.
      *
-     * @param block the Block to add
-     * @param publish if true, this Node is going to inform all other Nodes about the new Block
+     * @param block    the Block to add
+     * @param publish  if true, this Node is going to inform all other Nodes about the new Block
      * @param response Status Code 202 if Block accepted, 406 if verification fails
      */
     @RequestMapping(method = RequestMethod.PUT)
@@ -55,13 +59,13 @@ public class BlockController {
         var success = blockService.append(block);
 
         if (success) {
-            response.setStatus(HttpServletResponse.SC_ACCEPTED);
+            response.setStatus(SC_ACCEPTED);
 
             if (publish != null && publish) {
                 nodeService.broadcastPut("block", block);
             }
         } else {
-            response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+            response.setStatus(SC_NOT_ACCEPTABLE);
         }
     }
 

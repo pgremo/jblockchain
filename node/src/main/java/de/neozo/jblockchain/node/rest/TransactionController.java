@@ -13,6 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 import java.util.Set;
 
+import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_ACCEPTABLE;
+
 
 @RestController()
 @RequestMapping("transaction")
@@ -31,6 +34,7 @@ public class TransactionController {
 
     /**
      * Retrieve all Transactions, which aren't in a block yet
+     *
      * @return JSON list of Transactions
      */
     @RequestMapping
@@ -44,8 +48,8 @@ public class TransactionController {
      * It is expected that the transaction has a valid signature and the correct hash.
      *
      * @param transaction the Transaction to add
-     * @param publish if true, this Node is going to inform all other Nodes about the new Transaction
-     * @param response Status Code 202 if Transaction accepted, 406 if verification fails
+     * @param publish     if true, this Node is going to inform all other Nodes about the new Transaction
+     * @param response    Status Code 202 if Transaction accepted, 406 if verification fails
      */
     @RequestMapping(method = RequestMethod.PUT)
     void addTransaction(@RequestBody Transaction transaction, @RequestParam(required = false) Boolean publish, HttpServletResponse response) {
@@ -53,13 +57,13 @@ public class TransactionController {
         var success = transactionService.add(transaction);
 
         if (success) {
-            response.setStatus(HttpServletResponse.SC_ACCEPTED);
+            response.setStatus(SC_ACCEPTED);
 
             if (publish != null && publish) {
                 nodeService.broadcastPut("transaction", transaction);
             }
         } else {
-            response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+            response.setStatus(SC_NOT_ACCEPTABLE);
         }
     }
 

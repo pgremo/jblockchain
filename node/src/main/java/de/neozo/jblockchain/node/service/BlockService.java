@@ -67,10 +67,10 @@ public class BlockService {
      * @param restTemplate RestTemplate to use
      */
     public void retrieveBlockchain(Node node, RestTemplate restTemplate) {
-        var blocks = restTemplate.getForObject(node.getAddress() + "/block", Block[].class);
+        var blocks = restTemplate.getForObject(node.address() + "/block", Block[].class);
         if (blocks == null) blocks = new Block[0];
         addAll(blockchain, blocks);
-        LOG.info("Retrieved " + blocks.length + " blocks from node " + node.getAddress());
+        LOG.info("Retrieved " + blocks.length + " blocks from node " + node.address());
     }
 
 

@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PreDestroy;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
@@ -42,11 +43,12 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
 
     /**
      * Initial setup, query master Node for
-     *  - Other Nodes
-     *  - All Addresses
-     *  - Current Blockchain
-     *  - Transactions in pool
-     *  and publish self on all other Nodes
+     * - Other Nodes
+     * - All Addresses
+     * - Current Blockchain
+     * - Transactions in pool
+     * and publish self on all other Nodes
+     *
      * @param servletWebServerInitializedEvent serverletContainer for port retrieval
      */
     @Override
@@ -58,7 +60,7 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
         int port = servletWebServerInitializedEvent.getWebServer().getPort();
 
         self = getSelfNode(host, port);
-        LOG.info("Self address: " + self.getAddress());
+        LOG.info("Self address: " + self.address());
 
         // download data if necessary
         if (self.equals(masterNode)) {
@@ -102,54 +104,71 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
 
     /**
      * Invoke a PUT request on all other Nodes
+     *
      * @param endpoint the endpoint for this request
-     * @param data the data to send
+     * @param data     the data to send
      */
     public void broadcastPut(String endpoint, Object data) {
-        knownNodes.parallelStream().forEach(node -> restTemplate.put(node.getAddress() + "/" + endpoint, data));
+        knownNodes.parallelStream().forEach(node -> {
+            try {
+                restTemplate.put(new URL(node.address(), endpoint).toURI(), data);
+            } catch (URISyntaxException | MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**
      * Invoke a POST request on all other Nodes
+     *
      * @param endpoint the endpoint for this request
-     * @param data the data to send
+     * @param data     the data to send
      */
     public void broadcastPost(String endpoint, Object data) {
-        knownNodes.parallelStream().forEach(node -> restTemplate.postForLocation(node.getAddress() + "/" + endpoint, data));
+        knownNodes.parallelStream().forEach(node -> {
+            try {
+                restTemplate.postForLocation(new URL(node.address(), endpoint).toURI(), data);
+            } catch (URISyntaxException | MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**
      * Download Nodes from other Node and them to known Nodes
-     * @param node Node to query
+     *
+     * @param node         Node to query
      * @param restTemplate RestTemplate to use
      */
     public void retrieveKnownNodes(Node node, RestTemplate restTemplate) {
-        var nodes = restTemplate.getForObject(node.getAddress() + "/node", Node[].class);
-        if (nodes == null) nodes = new Node[0];
-        addAll(knownNodes, nodes);
-        LOG.info("Retrieved " + nodes.length + " nodes from node " + node.getAddress());
+        try {
+            var nodes = restTemplate.getForObject(new URL(node.address(), "node").toURI(), Node[].class);
+            if (nodes == null) nodes = new Node[0];
+            addAll(knownNodes, nodes);
+            LOG.info("Retrieved " + nodes.length + " nodes from node " + node.address());
+        } catch (URISyntaxException | MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private String retrieveSelfExternalHost(Node node, RestTemplate restTemplate) {
-        return restTemplate.getForObject(node.getAddress() + "/node/ip", String.class);
+        try {
+            return restTemplate.getForObject(new URL(node.address(), "node/ip").toURI(), String.class);
+        } catch (URISyntaxException | MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Node getSelfNode(String host, int port) {
         try {
             return new Node(new URL("http", host, port, ""));
         } catch (MalformedURLException e) {
-            LOG.error("Invalid self URL", e);
-            return new Node();
+            throw new RuntimeException(e);
         }
     }
 
     private Node getMasterNode() {
-        try {
-            return new Node(new URL(Config.MASTER_NODE_ADDRESS));
-        } catch (MalformedURLException e) {
-            LOG.error("Invalid master node URL", e);
-            return new Node();
-        }
+        return new Node(Config.MASTER_NODE_ADDRESS);
     }
 
 }

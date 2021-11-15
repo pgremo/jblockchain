@@ -57,9 +57,9 @@ public class AddressService {
      * @param restTemplate RestTemplate to use
      */
     public void retrieveAddresses(Node node, RestTemplate restTemplate) {
-        var addresses = restTemplate.getForObject(node.getAddress() + "/address", Address[].class);
+        var addresses = restTemplate.getForObject(node.address() + "/address", Address[].class);
         if (addresses == null) addresses = new Address[0];
         asList(addresses).forEach(this::add);
-        LOG.info("Retrieved " + addresses.length + " addresses from node " + node.getAddress());
+        LOG.info("Retrieved " + addresses.length + " addresses from node " + node.address());
     }
 }

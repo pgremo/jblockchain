@@ -3,6 +3,7 @@ package de.neozo.jblockchain.common.domain;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,11 +45,11 @@ public class Block {
     public Block() {
     }
 
-    public Block(byte[] previousBlockHash, List<Transaction> transactions, long tries) {
+    public Block(byte[] previousBlockHash, List<Transaction> transactions, long tries, Clock clock) {
         this.previousBlockHash = previousBlockHash;
         this.transactions = transactions;
         this.tries = tries;
-        this.timestamp = System.currentTimeMillis();
+        this.timestamp = clock.millis();
         this.merkleRoot = calculateMerkleRoot();
         this.hash = calculateHash();
     }
@@ -97,10 +98,6 @@ public class Block {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
     /**
      * Calculates the hash using relevant fields of this type
      *
@@ -109,7 +106,7 @@ public class Block {
     public byte[] calculateHash() {
         try {
             var digest = MessageDigest.getInstance("SHA-256");
-            digest.update(previousBlockHash);
+            if (previousBlockHash != null) digest.update(previousBlockHash);
             digest.update(Transaction.toByteArray(tries));
             digest.update(Transaction.toByteArray(timestamp));
             return digest.digest();

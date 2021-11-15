@@ -43,11 +43,9 @@ public class TransactionService {
      * @return true if verifcation succeeds and Transaction was added
      */
     public synchronized boolean add(Transaction transaction) {
-        if (verify(transaction)) {
-            transactionPool.add(transaction);
-            return true;
-        }
-        return false;
+        if (!verify(transaction)) return false;
+        transactionPool.add(transaction);
+        return true;
     }
 
     /**
@@ -69,7 +67,7 @@ public class TransactionService {
 
     private boolean verify(Transaction transaction) {
         // correct signature
-        Address sender = addressService.getByHash(transaction.getSenderHash());
+        var sender = addressService.getByHash(transaction.getSenderHash());
         if (sender == null) {
             LOG.warn("Unknown address " + Base64.getEncoder().encodeToString(transaction.getSenderHash()));
             return false;
@@ -100,8 +98,9 @@ public class TransactionService {
      * @param restTemplate RestTemplate to use
      */
     public void retrieveTransactions(Node node, RestTemplate restTemplate) {
-        Transaction[] transactions = restTemplate.getForObject(node.getAddress() + "/transaction", Transaction[].class);
+        var transactions = restTemplate.getForObject(node.address() + "/transaction", Transaction[].class);
+        if (transactions == null) transactions = new Transaction[0];
         Collections.addAll(transactionPool, transactions);
-        LOG.info("Retrieved " + transactions.length + " transactions from node " + node.getAddress());
+        LOG.info("Retrieved " + transactions.length + " transactions from node " + node.address());
     }
 }
