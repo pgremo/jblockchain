@@ -1,7 +1,7 @@
 package de.neozo.jblockchain.client;
 
 
-import de.neozo.jblockchain.common.SignatureUtils;
+import de.neozo.jblockchain.common.Signatures;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Transaction;
 import org.apache.commons.cli.*;
@@ -12,7 +12,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.time.Clock;
@@ -117,7 +116,7 @@ public class BlockchainClient {
     }
 
     private static void generateKeyPair() throws NoSuchProviderException, NoSuchAlgorithmException, IOException {
-        var keyPair = SignatureUtils.generateKeyPair();
+        var keyPair = Signatures.generateKeyPair();
         Files.write(Paths.get("key.priv"), keyPair.getPrivate().getEncoded());
         Files.write(Paths.get("key.pub"), keyPair.getPublic().getEncoded());
     }
@@ -131,7 +130,7 @@ public class BlockchainClient {
 
     private static void publishTransaction(URL node, Path privateKey, String text, byte[] senderHash) throws Exception {
         var restTemplate = new RestTemplate();
-        var signature = SignatureUtils.sign(text.getBytes(), Files.readAllBytes(privateKey));
+        var signature = Signatures.sign(text.getBytes(), Files.readAllBytes(privateKey));
         var transaction = new Transaction(text, senderHash, signature, Clock.systemUTC());
         restTemplate.put(node.toString() + "/transaction?publish=true", transaction);
         System.out.println("Hash of new transaction: " + Base64.getEncoder().encodeToString(transaction.getHash()));

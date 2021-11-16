@@ -78,11 +78,11 @@ public class BlockService {
         // references last block in chain
         if (blockchain.size() > 0) {
             var lastBlockInChainHash = getLastBlock().getHash();
-            if (!Arrays.equals(block.getPreviousBlockHash(), lastBlockInChainHash)) {
+            if (!Arrays.equals(block.getPreviousHash(), lastBlockInChainHash)) {
                 return false;
             }
         } else {
-            if (block.getPreviousBlockHash() != null) {
+            if (block.getPreviousHash() != null) {
                 return false;
             }
         }

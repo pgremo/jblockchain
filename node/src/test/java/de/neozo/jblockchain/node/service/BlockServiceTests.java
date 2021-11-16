@@ -1,7 +1,7 @@
 package de.neozo.jblockchain.node.service;
 
 
-import de.neozo.jblockchain.common.SignatureUtils;
+import de.neozo.jblockchain.common.Signatures;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Block;
 import de.neozo.jblockchain.common.domain.Transaction;
@@ -80,7 +80,7 @@ public class BlockServiceTests {
         var transactions = new ArrayList<Transaction>();
         for (var i = 0; i < count; i++) {
             var text = "Hello %d".formatted(i);
-            var signature = SignatureUtils.sign(text.getBytes(), privateKey);
+            var signature = Signatures.sign(text.getBytes(), privateKey);
             var transaction = new Transaction(text, address.getHash(), signature, Clock.systemUTC());
 
             transactionService.add(transaction);

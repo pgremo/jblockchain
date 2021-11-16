@@ -1,7 +1,7 @@
 package de.neozo.jblockchain.node.service;
 
 
-import de.neozo.jblockchain.common.SignatureUtils;
+import de.neozo.jblockchain.common.Signatures;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Transaction;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +28,7 @@ public class TransactionServiceTests {
 
     @BeforeEach
     public void setUp() throws Exception {
-        keyPair = SignatureUtils.generateKeyPair();
+        keyPair = Signatures.generateKeyPair();
         address = new Address("Max Mustermann", keyPair.getPublic().getEncoded());
         addressService.add(address);
     }
@@ -36,7 +36,7 @@ public class TransactionServiceTests {
     @Test
     public void addTransaction_valid() throws Exception {
         var text = "Lorem Ipsum";
-        var signature = SignatureUtils.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
+        var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
         var transaction = new Transaction(text, address.getHash(), signature, Clock.systemUTC());
 
         assertTrue(transactionService.add(transaction));
@@ -45,7 +45,7 @@ public class TransactionServiceTests {
     @Test
     public void addTransaction_invalidText() throws Exception {
         var text = "Lorem Ipsum";
-        var signature = SignatureUtils.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
+        var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
         var transaction = new Transaction("Fake text!!!", address.getHash(), signature, Clock.systemUTC());
 
         assertFalse(transactionService.add(transaction));
@@ -53,11 +53,11 @@ public class TransactionServiceTests {
 
     @Test
     public void addTransaction_invalidSender() throws Exception {
-        var addressPresident = new Address("Mr. President", SignatureUtils.generateKeyPair().getPublic().getEncoded());
+        var addressPresident = new Address("Mr. President", Signatures.generateKeyPair().getPublic().getEncoded());
         addressService.add(addressPresident);
 
         var text = "Lorem Ipsum";
-        var signature = SignatureUtils.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
+        var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
         var transaction = new Transaction(text, addressPresident.getHash(), signature, Clock.systemUTC());
 
         assertFalse(transactionService.add(transaction));

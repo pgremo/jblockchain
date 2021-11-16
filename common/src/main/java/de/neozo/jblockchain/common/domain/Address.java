@@ -1,7 +1,7 @@
 package de.neozo.jblockchain.common.domain;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import de.neozo.jblockchain.common.Hashes;
+
 import java.util.Arrays;
 
 public class Address {
@@ -45,14 +45,7 @@ public class Address {
      * @return SHA256-hash as raw bytes
      */
     private byte[] calculateHash() {
-        try {
-            var digest = MessageDigest.getInstance("SHA-256");
-            digest.update(name.getBytes());
-            digest.update(publicKey);
-            return digest.digest();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+        return Hashes.digest(name.getBytes(), publicKey);
     }
 
     @Override

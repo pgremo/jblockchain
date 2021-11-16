@@ -1,8 +1,7 @@
 package de.neozo.jblockchain.node.service;
 
 
-import de.neozo.jblockchain.common.SignatureUtils;
-import de.neozo.jblockchain.common.domain.Address;
+import de.neozo.jblockchain.common.Signatures;
 import de.neozo.jblockchain.common.domain.Node;
 import de.neozo.jblockchain.common.domain.Transaction;
 import org.slf4j.Logger;
@@ -74,7 +73,7 @@ public class TransactionService {
         }
 
         try {
-            if (!SignatureUtils.verify(transaction.getSignableData(), transaction.getSignature(), sender.getPublicKey())) {
+            if (!Signatures.verify(transaction.getSignableData(), transaction.getSignature(), sender.getPublicKey())) {
                 LOG.warn("Invalid signature");
                 return false;
             }

@@ -6,7 +6,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-public abstract class SignatureUtils {
+public final class Signatures {
 
     /**
      * The keyFactory defines which algorithms are used to generate the private/public keys.

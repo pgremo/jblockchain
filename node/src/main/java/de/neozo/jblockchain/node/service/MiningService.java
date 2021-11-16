@@ -63,7 +63,7 @@ public class MiningService implements Runnable {
             var block = mineBlock();
             if (block != null) {
                 // Found block! Append and publish
-                LOG.info("Mined block with " + block.getTransactions().size() + " transactions and nonce " + block.getTries());
+                LOG.info("Mined block with " + block.getTransactions().size() + " transactions and nonce " + block.getNonce());
                 blockService.append(block);
                 nodeService.broadcastPut("block", block);
             }

@@ -1,7 +1,7 @@
 package de.neozo.jblockchain.node.service;
 
 
-import de.neozo.jblockchain.common.SignatureUtils;
+import de.neozo.jblockchain.common.Signatures;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Transaction;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +27,7 @@ public class MiningServiceTests {
 
     @BeforeEach
     public void setUp() throws Exception {
-        keyPair = SignatureUtils.generateKeyPair();
+        keyPair = Signatures.generateKeyPair();
         address = new Address("Max Mustermann", keyPair.getPublic().getEncoded());
         addressService.add(address);
     }
@@ -49,7 +49,7 @@ public class MiningServiceTests {
     private void addTransactions(int count) throws Exception {
         for (var i = 0; i < count; i++) {
             var text = "Demo Transaction %d".formatted(i);
-            var signature = SignatureUtils.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
+            var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
             var transaction = new Transaction(text, address.getHash(), signature, Clock.systemUTC());
 
             transactionService.add(transaction);
