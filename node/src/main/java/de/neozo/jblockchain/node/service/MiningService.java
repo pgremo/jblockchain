@@ -78,7 +78,6 @@ public class MiningService implements Runnable {
 
     private Block mineBlock() {
         // get previous hash and transactions
-        var previousBlockHash = blockService.getLastBlock() == null ? null : blockService.getLastBlock().getHash();
         var transactions = transactionService.getTransactionPool()
                 .stream().limit(maxTransactionsPerBlock).collect(toList());
 
@@ -94,9 +93,10 @@ public class MiningService implements Runnable {
         }
 
         // try new block until difficulty is sufficient
+        var previousBlockHash = blockService.getLastBlock() == null ? null : blockService.getLastBlock().getHash();
         var tries = 0L;
         while (runMiner.get()) {
-            var block = new Block(previousBlockHash, transactions, tries, clock.millis());
+            var block = new Block(previousBlockHash, transactions, difficulty, tries, clock.millis());
             if (block.getLeadingZerosCount() >= difficulty) {
                 return block;
             }

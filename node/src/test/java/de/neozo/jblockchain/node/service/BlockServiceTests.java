@@ -45,19 +45,19 @@ public class BlockServiceTests {
 
     @Test
     public void addBlock_validHash() {
-        var block = new Block(null, List.of(generateStableTransaction()), 422717, 42);
+        var block = new Block(null, List.of(generateStableTransaction()), 3, 20854567, 42);
         assertTrue(blockService.append(block));
     }
 
     @Test
     public void addBlock_invalidHash() throws Exception {
-        var block = new Block(null, generateTransactions(1), 42, System.currentTimeMillis());
+        var block = new Block(null, generateTransactions(1), 3, 42, System.currentTimeMillis());
         assertFalse(blockService.append(block));
     }
 
     @Test
     public void addBlock_invalidLimitExceeded() throws Exception {
-        var block = new Block(null, generateTransactions(6), 42, System.currentTimeMillis());
+        var block = new Block(null, generateTransactions(6), 3, 42, System.currentTimeMillis());
         assertFalse(blockService.append(block));
     }
 
@@ -68,7 +68,7 @@ public class BlockServiceTests {
         var success = false;
         var nonce = 0;
         while (!success) {
-            var block = new Block(null, transactions, nonce, 42);
+            var block = new Block(null, transactions,3, nonce, 42);
             success = blockService.append(block);
             nonce++;
         }

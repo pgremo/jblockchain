@@ -6,7 +6,6 @@ import de.neozo.jblockchain.common.Hashes;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 
 import static de.neozo.jblockchain.common.Bytes.toByteArray;
 import static java.util.stream.Collectors.toCollection;
@@ -33,6 +32,7 @@ public class Block {
      */
     private final byte[] merkleRoot;
 
+    private final int difficulty;
     /**
      * Self-chosen number to manipulate the Block hash
      */
@@ -43,9 +43,10 @@ public class Block {
      */
     private final long timestamp;
 
-    public Block(byte[] previousHash, List<Transaction> transactions, long nonce, long timestamp) {
+    public Block(byte[] previousHash, List<Transaction> transactions, int difficulty, long nonce, long timestamp) {
         this.previousHash = previousHash;
         this.transactions = transactions;
+        this.difficulty = difficulty;
         this.nonce = nonce;
         this.timestamp = timestamp;
         this.merkleRoot = calculateMerkleRoot();
@@ -85,6 +86,7 @@ public class Block {
         return Hashes.digest(
                 previousHash == null ? new byte[0] : previousHash,
                 merkleRoot,
+                toByteArray(difficulty),
                 toByteArray(timestamp),
                 toByteArray(nonce)
         );
