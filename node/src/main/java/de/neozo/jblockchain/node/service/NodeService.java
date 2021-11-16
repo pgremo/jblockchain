@@ -2,7 +2,6 @@ package de.neozo.jblockchain.node.service;
 
 
 import de.neozo.jblockchain.common.domain.Node;
-import de.neozo.jblockchain.node.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,15 +48,15 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
      * - Transactions in pool
      * and publish self on all other Nodes
      *
-     * @param servletWebServerInitializedEvent serverletContainer for port retrieval
+     * @param event serverletContainer for port retrieval
      */
     @Override
-    public void onApplicationEvent(ServletWebServerInitializedEvent servletWebServerInitializedEvent) {
-        Node masterNode = getMasterNode();
+    public void onApplicationEvent(ServletWebServerInitializedEvent event) {
+        var masterNode = (Node) event.getApplicationContext().getBean("masterNode");
 
         // construct self node
-        String host = retrieveSelfExternalHost(masterNode, restTemplate);
-        int port = servletWebServerInitializedEvent.getWebServer().getPort();
+        var host = retrieveSelfExternalHost(masterNode, restTemplate);
+        var port = event.getWebServer().getPort();
 
         self = getSelfNode(host, port);
         LOG.info("Self address: " + self.address());
@@ -166,9 +165,4 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
             throw new RuntimeException(e);
         }
     }
-
-    private Node getMasterNode() {
-        return new Node(Config.MASTER_NODE_ADDRESS);
-    }
-
 }

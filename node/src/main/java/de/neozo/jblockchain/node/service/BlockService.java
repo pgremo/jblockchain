@@ -3,10 +3,10 @@ package de.neozo.jblockchain.node.service;
 
 import de.neozo.jblockchain.common.domain.Block;
 import de.neozo.jblockchain.common.domain.Node;
-import de.neozo.jblockchain.node.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -21,6 +21,12 @@ import static java.util.Collections.addAll;
 public class BlockService {
 
     private final static Logger LOG = LoggerFactory.getLogger(BlockService.class);
+
+    @Value("${difficulty}")
+    public int difficulty;
+
+    @Value("${max-transactions-per-block}")
+    public int maxTransactionsPerBlock;
 
     private final TransactionService transactionService;
 
@@ -37,6 +43,7 @@ public class BlockService {
 
     /**
      * Determine the last added Block
+     *
      * @return Last Block in chain
      */
     public Block getLastBlock() {
@@ -48,6 +55,7 @@ public class BlockService {
 
     /**
      * Append a new Block at the end of chain
+     *
      * @param block Block to append
      * @return true if verifcation succeeds and Block was appended
      */
@@ -63,7 +71,8 @@ public class BlockService {
 
     /**
      * Download Blocks from other Node and them to the blockchain
-     * @param node Node to query
+     *
+     * @param node         Node to query
      * @param restTemplate RestTemplate to use
      */
     public void retrieveBlockchain(Node node, RestTemplate restTemplate) {
@@ -96,7 +105,7 @@ public class BlockService {
         }
 
         // transaction limit
-        if (block.getTransactions().size() > Config.MAX_TRANSACTIONS_PER_BLOCK) {
+        if (block.getTransactions().size() > maxTransactionsPerBlock) {
             return false;
         }
 
@@ -106,6 +115,6 @@ public class BlockService {
         }
 
         // considered difficulty
-        return block.getLeadingZerosCount() >= Config.DIFFICULTY;
+        return block.getLeadingZerosCount() >= difficulty;
     }
 }

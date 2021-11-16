@@ -5,19 +5,24 @@ import de.neozo.jblockchain.common.domain.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static de.neozo.jblockchain.node.Config.DIFFICULTY;
-import static de.neozo.jblockchain.node.Config.MAX_TRANSACTIONS_PER_BLOCK;
 import static java.util.stream.Collectors.toList;
 
 @Service
 public class MiningService implements Runnable {
 
     private final static Logger LOG = LoggerFactory.getLogger(MiningService.class);
+
+    @Value("${difficulty}")
+    public int difficulty;
+
+    @Value("${max-transactions-per-block}")
+    public int maxTransactionsPerBlock;
 
     private final TransactionService transactionService;
     private final NodeService nodeService;
@@ -75,7 +80,7 @@ public class MiningService implements Runnable {
         // get previous hash and transactions
         var previousBlockHash = blockService.getLastBlock() == null ? null : blockService.getLastBlock().getHash();
         var transactions = transactionService.getTransactionPool()
-                .stream().limit(MAX_TRANSACTIONS_PER_BLOCK).collect(toList());
+                .stream().limit(maxTransactionsPerBlock).collect(toList());
 
         // sleep if no more transactions left
         if (transactions.isEmpty()) {
@@ -92,7 +97,7 @@ public class MiningService implements Runnable {
         var tries = 0L;
         while (runMiner.get()) {
             var block = new Block(previousBlockHash, transactions, tries, clock.millis());
-            if (block.getLeadingZerosCount() >= DIFFICULTY) {
+            if (block.getLeadingZerosCount() >= difficulty) {
                 return block;
             }
             tries++;
