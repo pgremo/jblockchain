@@ -8,14 +8,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.security.KeyPair;
-import java.time.Clock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
+@DirtiesContext
 public class TransactionServiceTests {
 
     @Autowired
@@ -37,7 +38,7 @@ public class TransactionServiceTests {
     public void addTransaction_valid() throws Exception {
         var text = "Lorem Ipsum";
         var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-        var transaction = new Transaction(text, address.getHash(), signature, Clock.systemUTC());
+        var transaction = new Transaction(text, address.getHash(), signature, System.currentTimeMillis());
 
         assertTrue(transactionService.add(transaction));
     }
@@ -46,7 +47,7 @@ public class TransactionServiceTests {
     public void addTransaction_invalidText() throws Exception {
         var text = "Lorem Ipsum";
         var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-        var transaction = new Transaction("Fake text!!!", address.getHash(), signature, Clock.systemUTC());
+        var transaction = new Transaction("Fake text!!!", address.getHash(), signature, System.currentTimeMillis());
 
         assertFalse(transactionService.add(transaction));
     }
@@ -58,7 +59,7 @@ public class TransactionServiceTests {
 
         var text = "Lorem Ipsum";
         var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-        var transaction = new Transaction(text, addressPresident.getHash(), signature, Clock.systemUTC());
+        var transaction = new Transaction(text, addressPresident.getHash(), signature, System.currentTimeMillis());
 
         assertFalse(transactionService.add(transaction));
     }

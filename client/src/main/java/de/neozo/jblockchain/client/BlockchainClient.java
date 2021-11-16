@@ -14,7 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.time.Clock;
 import java.util.Base64;
 
 
@@ -131,7 +130,7 @@ public class BlockchainClient {
     private static void publishTransaction(URL node, Path privateKey, String text, byte[] senderHash) throws Exception {
         var restTemplate = new RestTemplate();
         var signature = Signatures.sign(text.getBytes(), Files.readAllBytes(privateKey));
-        var transaction = new Transaction(text, senderHash, signature, Clock.systemUTC());
+        var transaction = new Transaction(text, senderHash, signature, System.currentTimeMillis());
         restTemplate.put(node.toString() + "/transaction?publish=true", transaction);
         System.out.println("Hash of new transaction: " + Base64.getEncoder().encodeToString(transaction.getHash()));
     }

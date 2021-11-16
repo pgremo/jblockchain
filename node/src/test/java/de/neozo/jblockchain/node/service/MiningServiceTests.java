@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.security.KeyPair;
-import java.time.Clock;
 
 @SpringBootTest
 public class MiningServiceTests {
@@ -50,7 +49,7 @@ public class MiningServiceTests {
         for (var i = 0; i < count; i++) {
             var text = "Demo Transaction %d".formatted(i);
             var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-            var transaction = new Transaction(text, address.getHash(), signature, Clock.systemUTC());
+            var transaction = new Transaction(text, address.getHash(), signature, System.currentTimeMillis());
 
             transactionService.add(transaction);
         }

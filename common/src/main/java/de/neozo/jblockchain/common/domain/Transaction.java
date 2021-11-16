@@ -3,7 +3,6 @@ package de.neozo.jblockchain.common.domain;
 
 import de.neozo.jblockchain.common.Hashes;
 
-import java.time.Clock;
 import java.util.Arrays;
 
 import static de.neozo.jblockchain.common.Bytes.toByteArray;
@@ -34,11 +33,11 @@ public class Transaction {
      */
     private final long timestamp;
 
-    public Transaction(String text, byte[] senderHash, byte[] signature, Clock clock) {
+    public Transaction(String text, byte[] senderHash, byte[] signature, long timestamp) {
         this.text = text;
         this.senderHash = senderHash;
         this.signature = signature;
-        this.timestamp = clock.millis();
+        this.timestamp = timestamp;
         this.hash = calculateHash();
     }
 

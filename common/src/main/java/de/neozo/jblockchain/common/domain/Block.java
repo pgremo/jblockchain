@@ -3,7 +3,6 @@ package de.neozo.jblockchain.common.domain;
 
 import de.neozo.jblockchain.common.Hashes;
 
-import java.time.Clock;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,11 +43,11 @@ public class Block {
      */
     private final long timestamp;
 
-    public Block(byte[] previousHash, List<Transaction> transactions, long nonce, Clock clock) {
-        this.previousHash = Objects.requireNonNullElseGet(previousHash, () -> new byte[0]);
+    public Block(byte[] previousHash, List<Transaction> transactions, long nonce, long timestamp) {
+        this.previousHash = previousHash;
         this.transactions = transactions;
         this.nonce = nonce;
-        this.timestamp = clock.millis();
+        this.timestamp = timestamp;
         this.merkleRoot = calculateMerkleRoot();
         this.hash = calculateHash();
     }
@@ -84,9 +83,10 @@ public class Block {
      */
     public byte[] calculateHash() {
         return Hashes.digest(
-                previousHash,
-                toByteArray(nonce),
-                toByteArray(timestamp)
+                previousHash == null ? new byte[0] : previousHash,
+                merkleRoot,
+                toByteArray(timestamp),
+                toByteArray(nonce)
         );
     }
 
@@ -97,11 +97,11 @@ public class Block {
      * @return SHA256-hash as raw bytes
      */
     public byte[] calculateMerkleRoot() {
-        var hashQueue = transactions.stream().map(Transaction::getHash).collect(toCollection(LinkedList::new));
-        while (hashQueue.size() > 1) {
-            hashQueue.add(Hashes.digest(hashQueue.poll(), hashQueue.poll()));
+        var queue = transactions.stream().map(Transaction::getHash).collect(toCollection(LinkedList::new));
+        while (queue.size() > 1) {
+            queue.offer(Hashes.digest(queue.poll(), queue.poll()));
         }
-        return hashQueue.poll();
+        return queue.poll();
     }
 
     /**
