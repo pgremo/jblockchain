@@ -45,7 +45,6 @@ public class BlockServiceTests {
 
     @Test
     public void addBlock_validHash() {
-        System.out.println(blockService.getBlockchain());
         var block = new Block(null, List.of(generateStableTransaction()), 422717, 42);
         assertTrue(blockService.append(block));
     }
