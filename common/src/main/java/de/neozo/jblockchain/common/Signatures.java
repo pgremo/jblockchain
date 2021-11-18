@@ -24,7 +24,7 @@ public final class Signatures {
     /**
      * Generate a random key pair.
      *
-     * @return KeyPair containg private and public key
+     * @return KeyPair containing private and public key
      */
     public static KeyPair generateKeyPair() throws NoSuchProviderException, NoSuchAlgorithmException {
         var keyGen = KeyPairGenerator.getInstance("DSA", "SUN");
