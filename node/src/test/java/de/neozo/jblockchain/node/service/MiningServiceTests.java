@@ -5,6 +5,7 @@ import de.neozo.jblockchain.common.Signatures;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Transaction;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,6 +32,7 @@ public class MiningServiceTests {
         addressService.add(address);
     }
 
+    @Disabled
     @Test
     public void startStopMiner() throws Exception {
         final var initialTransactions = 100;
