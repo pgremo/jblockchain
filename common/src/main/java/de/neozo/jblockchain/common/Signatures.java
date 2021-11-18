@@ -11,7 +11,7 @@ public final class Signatures {
     /**
      * The keyFactory defines which algorithms are used to generate the private/public keys.
      */
-    private static KeyFactory keyFactory;
+    private static final KeyFactory keyFactory;
 
     static {
         try {
