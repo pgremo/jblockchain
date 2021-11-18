@@ -6,10 +6,7 @@ import de.neozo.jblockchain.node.service.NodeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Set;
@@ -32,7 +29,7 @@ public class NodeController {
      * Get all Nodes this node knows
      * @return JSON list of addresses
      */
-    @RequestMapping()
+    @GetMapping()
     Set<Node> getNodes() {
         return nodeService.getKnownNodes();
     }
@@ -41,7 +38,7 @@ public class NodeController {
      * Add a new Node
      * @param node the Node to add
      */
-    @RequestMapping(method = RequestMethod.PUT)
+    @PutMapping
     void addNode(@RequestBody Node node) {
         LOG.info("Add node " + node.address());
         nodeService.add(node);
@@ -51,7 +48,7 @@ public class NodeController {
      * Remove a Node
      * @param node the Node to remove
      */
-    @RequestMapping(path = "remove", method = RequestMethod.POST)
+    @DeleteMapping()
     void removeNode(@RequestBody Node node) {
         LOG.info("Remove node " + node.address());
         nodeService.remove(node);

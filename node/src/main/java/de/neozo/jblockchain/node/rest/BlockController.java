@@ -40,7 +40,7 @@ public class BlockController {
      *
      * @return JSON list of Blocks
      */
-    @RequestMapping
+    @GetMapping
     List<Block> getBlockchain() {
         return blockService.getBlockchain();
     }
@@ -53,7 +53,7 @@ public class BlockController {
      * @param publish  if true, this Node is going to inform all other Nodes about the new Block
      * @param response Status Code 202 if Block accepted, 406 if verification fails
      */
-    @RequestMapping(method = RequestMethod.PUT)
+    @PutMapping
     void addBlock(@RequestBody Block block, @RequestParam(required = false) Boolean publish, HttpServletResponse response) {
         LOG.info("Add block " + Base64.getEncoder().encodeToString(block.getHash()));
         var success = blockService.append(block);

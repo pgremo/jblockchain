@@ -8,13 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 import java.util.Set;
 
-import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_ACCEPTABLE;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 
 @RestController()
@@ -37,7 +36,7 @@ public class TransactionController {
      *
      * @return JSON list of Transactions
      */
-    @RequestMapping
+    @GetMapping
     Set<Transaction> getTransactionPool() {
         return transactionService.getTransactionPool();
     }
@@ -49,21 +48,16 @@ public class TransactionController {
      *
      * @param transaction the Transaction to add
      * @param publish     if true, this Node is going to inform all other Nodes about the new Transaction
-     * @param response    Status Code 202 if Transaction accepted, 406 if verification fails
      */
-    @RequestMapping(method = RequestMethod.PUT)
-    void addTransaction(@RequestBody Transaction transaction, @RequestParam(required = false) Boolean publish, HttpServletResponse response) {
+    @PutMapping
+    void addTransaction(@RequestBody Transaction transaction, @RequestParam(required = false) Boolean publish) {
         LOG.info("Add transaction " + Base64.getEncoder().encodeToString(transaction.getHash()));
         var success = transactionService.add(transaction);
 
-        if (success) {
-            response.setStatus(SC_ACCEPTED);
+        if (!success) throw new ResponseStatusException(BAD_REQUEST);
 
-            if (publish != null && publish) {
-                nodeService.broadcastPut("transaction", transaction);
-            }
-        } else {
-            response.setStatus(SC_NOT_ACCEPTABLE);
+        if (publish != null && publish) {
+            nodeService.broadcastPut("transaction", transaction);
         }
     }
 

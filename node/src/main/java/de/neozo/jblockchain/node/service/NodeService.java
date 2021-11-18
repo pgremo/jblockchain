@@ -134,7 +134,7 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
     }
 
     /**
-     * Download Nodes from other Node and them to known Nodes
+     * Download Nodes from other Node and add them to known Nodes
      *
      * @param node         Node to query
      * @param restTemplate RestTemplate to use
