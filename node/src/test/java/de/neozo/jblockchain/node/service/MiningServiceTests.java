@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 
 @SpringBootTest
@@ -51,7 +52,12 @@ public class MiningServiceTests {
         for (var i = 0; i < count; i++) {
             var text = "Demo Transaction %d".formatted(i);
             var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-            var transaction = new Transaction(text, address.getHash(), signature, System.currentTimeMillis());
+            var transaction = new Transaction(
+                    text.getBytes(StandardCharsets.UTF_8),
+                    address.getHash(),
+                    signature,
+                    System.currentTimeMillis()
+            );
 
             transactionService.add(transaction);
         }

@@ -93,14 +93,16 @@ public class MiningService implements Runnable {
         }
 
         // try new block until difficulty is sufficient
-        var previousBlockHash = blockService.getLastBlock() == null ? null : blockService.getLastBlock().getHash();
-        var tries = 0L;
-        while (runMiner.get()) {
-            var block = new Block(previousBlockHash, transactions, difficulty, tries, clock.millis());
-            if (block.getLeadingZerosCount() >= difficulty) {
-                return block;
-            }
-            tries++;
+        var previousHash = blockService.getLastBlock() == null ? null : blockService.getLastBlock().getHash();
+        for (var tries = 0L; runMiner.get(); tries++) {
+            var block = new Block(
+                    previousHash,
+                    transactions,
+                    difficulty,
+                    tries,
+                    clock.millis()
+            );
+            if (block.getLeadingZerosCount() >= difficulty) return block;
         }
         return null;
     }

@@ -9,6 +9,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,7 +21,7 @@ import java.util.Base64;
 /**
  * Simple class to help building REST calls for jBlockchain.
  * Just run it in command line for instructions on how to use it.
- *
+ * <p>
  * Functions include:
  * - Generate Private/Public-Key
  * - Publish a new Address
@@ -37,7 +38,7 @@ public class BlockchainClient {
         } catch (ParseException e) {
             System.err.println(e.getMessage());
             HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("BlockchainClient", options , true);
+            formatter.printHelp("BlockchainClient", options, true);
         }
     }
 
@@ -130,7 +131,12 @@ public class BlockchainClient {
     private static void publishTransaction(URL node, Path privateKey, String text, byte[] senderHash) throws Exception {
         var restTemplate = new RestTemplate();
         var signature = Signatures.sign(text.getBytes(), Files.readAllBytes(privateKey));
-        var transaction = new Transaction(text, senderHash, signature, System.currentTimeMillis());
+        var transaction = new Transaction(
+                text.getBytes(StandardCharsets.UTF_8),
+                senderHash,
+                signature,
+                System.currentTimeMillis()
+        );
         restTemplate.put(node.toString() + "/transaction?publish=true", transaction);
         System.out.println("Hash of new transaction: " + Base64.getEncoder().encodeToString(transaction.getHash()));
     }

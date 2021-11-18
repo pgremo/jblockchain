@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class BlockServiceTests {
         var success = false;
         var nonce = 0;
         while (!success) {
-            var block = new Block(null, transactions,3, nonce, 42);
+            var block = new Block(null, transactions, 3, nonce, 42);
             success = blockService.append(block);
             nonce++;
         }
@@ -80,7 +81,12 @@ public class BlockServiceTests {
         for (var i = 0; i < count; i++) {
             var text = "Hello %d".formatted(i);
             var signature = Signatures.sign(text.getBytes(), privateKey);
-            var transaction = new Transaction(text, address.getHash(), signature, System.currentTimeMillis());
+            var transaction = new Transaction(
+                    text.getBytes(StandardCharsets.UTF_8),
+                    address.getHash(),
+                    signature,
+                    System.currentTimeMillis()
+            );
 
             transactionService.add(transaction);
             transactions.add(transaction);
@@ -90,10 +96,11 @@ public class BlockServiceTests {
 
     private Transaction generateStableTransaction() {
         var transaction = new Transaction(
-                "Hello 0",
+                "Hello 0".getBytes(StandardCharsets.UTF_8),
                 address.getHash(),
                 fixedSignature,
-                42);
+                42
+        );
 
         transactionService.add(transaction);
         return transaction;

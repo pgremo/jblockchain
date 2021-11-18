@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -38,7 +39,12 @@ public class TransactionServiceTests {
     public void addTransaction_valid() throws Exception {
         var text = "Lorem Ipsum";
         var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-        var transaction = new Transaction(text, address.getHash(), signature, System.currentTimeMillis());
+        var transaction = new Transaction(
+                text.getBytes(StandardCharsets.UTF_8),
+                address.getHash(),
+                signature,
+                System.currentTimeMillis()
+        );
 
         assertTrue(transactionService.add(transaction));
     }
@@ -47,7 +53,12 @@ public class TransactionServiceTests {
     public void addTransaction_invalidText() throws Exception {
         var text = "Lorem Ipsum";
         var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-        var transaction = new Transaction("Fake text!!!", address.getHash(), signature, System.currentTimeMillis());
+        var transaction = new Transaction(
+                "Fake text!!!".getBytes(StandardCharsets.UTF_8),
+                address.getHash(),
+                signature,
+                System.currentTimeMillis()
+        );
 
         assertFalse(transactionService.add(transaction));
     }
@@ -59,7 +70,12 @@ public class TransactionServiceTests {
 
         var text = "Lorem Ipsum";
         var signature = Signatures.sign(text.getBytes(), keyPair.getPrivate().getEncoded());
-        var transaction = new Transaction(text, addressPresident.getHash(), signature, System.currentTimeMillis());
+        var transaction = new Transaction(
+                text.getBytes(StandardCharsets.UTF_8),
+                addressPresident.getHash(),
+                signature,
+                System.currentTimeMillis()
+        );
 
         assertFalse(transactionService.add(transaction));
     }

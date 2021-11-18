@@ -16,12 +16,12 @@ public class Transaction {
     /**
      * Payload of this transaction
      */
-    private final String text;
+    private final byte[] payload;
 
     /**
      * The hash of the address which is responsible for this Transaction
      */
-    private final byte[] senderHash;
+    private final byte[] sender;
 
     /**
      * Signature of text which can be verified with publicKey of sender address
@@ -33,9 +33,9 @@ public class Transaction {
      */
     private final long timestamp;
 
-    public Transaction(String text, byte[] senderHash, byte[] signature, long timestamp) {
-        this.text = text;
-        this.senderHash = senderHash;
+    public Transaction(byte[] payload, byte[] senderHash, byte[] signature, long timestamp) {
+        this.payload = payload;
+        this.sender = senderHash;
         this.signature = signature;
         this.timestamp = timestamp;
         this.hash = calculateHash();
@@ -45,12 +45,12 @@ public class Transaction {
         return hash;
     }
 
-    public String getText() {
-        return text;
+    public byte[] getPayload() {
+        return payload;
     }
 
-    public byte[] getSenderHash() {
-        return senderHash;
+    public byte[] getSender() {
+        return sender;
     }
 
     public byte[] getSignature() {
@@ -61,10 +61,6 @@ public class Transaction {
         return timestamp;
     }
 
-    public byte[] getSignableData() {
-        return text.getBytes();
-    }
-
     /**
      * Calculates the hash using relevant fields of this type
      *
@@ -72,8 +68,8 @@ public class Transaction {
      */
     public byte[] calculateHash() {
         return Hashes.digest(
-                text.getBytes(),
-                senderHash,
+                payload,
+                sender,
                 signature,
                 toByteArray(timestamp)
         );

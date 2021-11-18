@@ -66,14 +66,14 @@ public class TransactionService {
 
     private boolean verify(Transaction transaction) {
         // correct signature
-        var sender = addressService.getByHash(transaction.getSenderHash());
+        var sender = addressService.getByHash(transaction.getSender());
         if (sender == null) {
-            LOG.warn("Unknown address " + Base64.getEncoder().encodeToString(transaction.getSenderHash()));
+            LOG.warn("Unknown address " + Base64.getEncoder().encodeToString(transaction.getSender()));
             return false;
         }
 
         try {
-            if (!Signatures.verify(transaction.getSignableData(), transaction.getSignature(), sender.getPublicKey())) {
+            if (!Signatures.verify(transaction.getPayload(), transaction.getSignature(), sender.getPublicKey())) {
                 LOG.warn("Invalid signature");
                 return false;
             }
