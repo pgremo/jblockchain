@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 
 @Service
@@ -32,8 +33,8 @@ public class TransactionService {
     }
 
 
-    public Set<Transaction> getTransactionPool() {
-        return transactionPool;
+    public Stream<Transaction> getTransactionPool() {
+        return transactionPool.stream();
     }
 
     /**
@@ -68,7 +69,7 @@ public class TransactionService {
         // correct signature
         var sender = addressService.getByHash(transaction.getSender());
         if (sender == null) {
-            LOG.warn("Unknown address " + Base64.getEncoder().encodeToString(transaction.getSender()));
+            LOG.warn("Unknown address {}", Base64.getEncoder().encodeToString(transaction.getSender()));
             return false;
         }
 
@@ -100,6 +101,6 @@ public class TransactionService {
         var transactions = restTemplate.getForObject(node.address() + "/transaction", Transaction[].class);
         if (transactions == null) transactions = new Transaction[0];
         Collections.addAll(transactionPool, transactions);
-        LOG.info("Retrieved " + transactions.length + " transactions from node " + node.address());
+        LOG.info("Retrieved {} transactions from node {}", transactions.length, node.address());
     }
 }

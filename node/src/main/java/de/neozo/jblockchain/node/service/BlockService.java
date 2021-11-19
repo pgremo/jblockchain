@@ -12,7 +12,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.Collections.addAll;
 
@@ -30,15 +32,15 @@ public class BlockService {
 
     private final TransactionService transactionService;
 
-    private final List<Block> blockchain = new ArrayList<>();
+    private final LinkedList<Block> blockchain = new LinkedList<>();
 
     @Autowired
     public BlockService(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
 
-    public List<Block> getBlockchain() {
-        return blockchain;
+    public Stream<Block> getBlockchain() {
+        return blockchain.stream();
     }
 
     /**
@@ -47,10 +49,7 @@ public class BlockService {
      * @return Last Block in chain
      */
     public Block getLastBlock() {
-        if (blockchain.isEmpty()) {
-            return null;
-        }
-        return blockchain.get(blockchain.size() - 1);
+        return blockchain.isEmpty() ? null : blockchain.getLast();
     }
 
     /**
@@ -79,7 +78,7 @@ public class BlockService {
         var blocks = restTemplate.getForObject(node.address() + "/block", Block[].class);
         if (blocks == null) blocks = new Block[0];
         addAll(blockchain, blocks);
-        LOG.info("Retrieved " + blocks.length + " blocks from node " + node.address());
+        LOG.info("Retrieved {} blocks from node {}", blocks.length, node.address());
     }
 
 

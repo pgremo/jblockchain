@@ -12,15 +12,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 public class BlockServiceTests {
 
     private final static byte[] fixedSignature = new byte[]{48, 44, 2, 20, 89, 48, -114, -49, 36, 65, 116, -5, 88, 6, -38, -110, -30, -73, 59, -53, 19, -49, 122, 90, 2, 20, 111, 38, 55, -120, -125, 17, -66, -8, -121, 85, 31, -82, -80, -31, -33, 116, 121, -90, 123, -113};
@@ -79,10 +80,10 @@ public class BlockServiceTests {
     private List<Transaction> generateTransactions(int count) throws Exception {
         var transactions = new ArrayList<Transaction>();
         for (var i = 0; i < count; i++) {
-            var text = "Hello %d".formatted(i);
-            var signature = Signatures.sign(text.getBytes(), privateKey);
+            var text = "Hello %d".formatted(i).getBytes(UTF_8);
+            var signature = Signatures.sign(text, privateKey);
             var transaction = new Transaction(
-                    text.getBytes(StandardCharsets.UTF_8),
+                    text,
                     address.getHash(),
                     signature,
                     System.currentTimeMillis()
@@ -96,7 +97,7 @@ public class BlockServiceTests {
 
     private Transaction generateStableTransaction() {
         var transaction = new Transaction(
-                "Hello 0".getBytes(StandardCharsets.UTF_8),
+                "Hello 0".getBytes(UTF_8),
                 address.getHash(),
                 fixedSignature,
                 42

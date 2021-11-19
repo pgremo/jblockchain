@@ -41,8 +41,8 @@ public class BlockController {
      * @return JSON list of Blocks
      */
     @GetMapping
-    List<Block> getBlockchain() {
-        return blockService.getBlockchain();
+    Iterable<Block> getBlockchain() {
+        return blockService.getBlockchain()::iterator;
     }
 
     /**

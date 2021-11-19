@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Base64;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 
@@ -28,6 +28,7 @@ public class AddressService {
 
     /**
      * Get a specific Address
+     *
      * @param hash hash of Address
      * @return Matching Address for hash
      */
@@ -37,14 +38,16 @@ public class AddressService {
 
     /**
      * Return all Addresses from map
+     *
      * @return Collection of Addresses
      */
-    public Collection<Address> getAll() {
-        return addresses.values();
+    public Stream<Address> getAll() {
+        return addresses.values().stream();
     }
 
     /**
      * Add a new Address to the map
+     *
      * @param address Address to add
      */
     public synchronized void add(Address address) {
@@ -53,13 +56,14 @@ public class AddressService {
 
     /**
      * Download Addresses from other Node and them to the map
-     * @param node Node to query
+     *
+     * @param node         Node to query
      * @param restTemplate RestTemplate to use
      */
     public void retrieveAddresses(Node node, RestTemplate restTemplate) {
         var addresses = restTemplate.getForObject(node.address() + "/address", Address[].class);
         if (addresses == null) addresses = new Address[0];
         asList(addresses).forEach(this::add);
-        LOG.info("Retrieved " + addresses.length + " addresses from node " + node.address());
+        LOG.info("Retrieved {} addresses from node {}", addresses.length, node.address());
     }
 }

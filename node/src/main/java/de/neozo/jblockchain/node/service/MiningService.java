@@ -68,7 +68,7 @@ public class MiningService implements Runnable {
             var block = mineBlock();
             if (block != null) {
                 // Found block! Append and publish
-                LOG.info("Mined block with " + block.getTransactions().size() + " transactions and nonce " + block.getNonce());
+                LOG.info("Mined block with {} transactions and nonce {}", block.getTransactions().size(), block.getNonce());
                 blockService.append(block);
                 nodeService.broadcastPut("block", block);
             }
@@ -79,7 +79,7 @@ public class MiningService implements Runnable {
     private Block mineBlock() {
         // get previous hash and transactions
         var transactions = transactionService.getTransactionPool()
-                .stream().limit(maxTransactionsPerBlock).collect(toList());
+                .limit(maxTransactionsPerBlock).collect(toList());
 
         // sleep if no more transactions left
         if (transactions.isEmpty()) {

@@ -41,7 +41,7 @@ public class MiningServiceTests {
 
         miningService.startMiner();
 
-        while (transactionService.getTransactionPool().size() == initialTransactions) {
+        while (transactionService.getTransactionPool().count() == initialTransactions) {
             Thread.sleep(1000);
         }
 

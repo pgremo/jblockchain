@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Base64;
-import java.util.Set;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -37,8 +36,8 @@ public class TransactionController {
      * @return JSON list of Transactions
      */
     @GetMapping
-    Set<Transaction> getTransactionPool() {
-        return transactionService.getTransactionPool();
+    Iterable<Transaction> getTransactionPool() {
+        return transactionService.getTransactionPool()::iterator;
     }
 
 
@@ -51,7 +50,7 @@ public class TransactionController {
      */
     @PutMapping
     void addTransaction(@RequestBody Transaction transaction, @RequestParam(required = false) Boolean publish) {
-        LOG.info("Add transaction " + Base64.getEncoder().encodeToString(transaction.getHash()));
+        LOG.info("Add transaction {}", Base64.getEncoder().encodeToString(transaction.getHash()));
         var success = transactionService.add(transaction);
 
         if (!success) throw new ResponseStatusException(BAD_REQUEST);

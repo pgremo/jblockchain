@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Set;
 
 
 @RestController
@@ -27,35 +26,39 @@ public class NodeController {
 
     /**
      * Get all Nodes this node knows
+     *
      * @return JSON list of addresses
      */
     @GetMapping()
-    Set<Node> getNodes() {
-        return nodeService.getKnownNodes();
+    Iterable<Node> getNodes() {
+        return nodeService.getKnownNodes()::iterator;
     }
 
     /**
      * Add a new Node
+     *
      * @param node the Node to add
      */
     @PutMapping
     void addNode(@RequestBody Node node) {
-        LOG.info("Add node " + node.address());
+        LOG.info("Add node {}", node.address());
         nodeService.add(node);
     }
 
     /**
      * Remove a Node
+     *
      * @param node the Node to remove
      */
     @DeleteMapping()
     void removeNode(@RequestBody Node node) {
-        LOG.info("Remove node " + node.address());
+        LOG.info("Remove node {}", node.address());
         nodeService.remove(node);
     }
 
     /**
      * Helper to determine the external address for new Nodes.
+     *
      * @param request HttpServletRequest
      * @return the remote address
      */

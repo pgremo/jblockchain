@@ -16,6 +16,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.Collections.addAll;
 
@@ -30,14 +31,17 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
     private final AddressService addressService;
 
     private Node self;
+    private final Node masterNode;
+
     private final Set<Node> knownNodes = new HashSet<>();
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Autowired
-    public NodeService(BlockService blockService, TransactionService transactionService, AddressService addressService) {
+    public NodeService(BlockService blockService, TransactionService transactionService, AddressService addressService, Node masterNode) {
         this.blockService = blockService;
         this.transactionService = transactionService;
         this.addressService = addressService;
+        this.masterNode = masterNode;
     }
 
     /**
@@ -52,14 +56,12 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
      */
     @Override
     public void onApplicationEvent(ServletWebServerInitializedEvent event) {
-        var masterNode = (Node) event.getApplicationContext().getBean("masterNode");
-
         // construct self node
         var host = retrieveSelfExternalHost(masterNode, restTemplate);
         var port = event.getWebServer().getPort();
 
         self = getSelfNode(host, port);
-        LOG.info("Self address: " + self.address());
+        LOG.info("Self address: {}", self.address());
 
         // download data if necessary
         if (self.equals(masterNode)) {
@@ -85,12 +87,12 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
     public void shutdown() {
         LOG.info("Shutting down");
         broadcastPost("node/remove", self);
-        LOG.info(knownNodes.size() + " informed");
+        LOG.info("{} informed", knownNodes.size());
     }
 
 
-    public Set<Node> getKnownNodes() {
-        return knownNodes;
+    public Stream<Node> getKnownNodes() {
+        return knownNodes.stream();
     }
 
     public synchronized void add(Node node) {
@@ -144,7 +146,7 @@ public class NodeService implements ApplicationListener<ServletWebServerInitiali
             var nodes = restTemplate.getForObject(new URL(node.address(), "node").toURI(), Node[].class);
             if (nodes == null) nodes = new Node[0];
             addAll(knownNodes, nodes);
-            LOG.info("Retrieved " + nodes.length + " nodes from node " + node.address());
+            LOG.info("Retrieved {} nodes from node {}" , nodes.length,  node.address());
         } catch (URISyntaxException | MalformedURLException e) {
             throw new RuntimeException(e);
         }

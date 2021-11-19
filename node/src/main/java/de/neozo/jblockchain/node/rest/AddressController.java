@@ -38,8 +38,8 @@ public class AddressController {
      * @return JSON list of Addresses
      */
     @GetMapping
-    Collection<Address> getAdresses() {
-        return addressService.getAll();
+    Iterable<Address> getAdresses() {
+        return addressService.getAll()::iterator;
     }
 
 
@@ -51,7 +51,7 @@ public class AddressController {
      */
     @PutMapping
     void addAddress(@RequestBody Address address, @RequestParam(required = false) Boolean publish) {
-        LOG.info("Add address " + Base64.getEncoder().encodeToString(address.getHash()));
+        LOG.info("Add address {}", Base64.getEncoder().encodeToString(address.getHash()));
 
         if (addressService.getByHash(address.getHash()) != null) {
             throw new ResponseStatusException(CONFLICT);
