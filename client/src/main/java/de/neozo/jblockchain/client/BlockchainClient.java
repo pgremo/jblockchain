@@ -5,17 +5,27 @@ import de.neozo.jblockchain.common.Signatures;
 import de.neozo.jblockchain.common.domain.Address;
 import de.neozo.jblockchain.common.domain.Transaction;
 import org.apache.commons.cli.*;
+import org.springframework.boot.Banner;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 /**
@@ -27,9 +37,23 @@ import java.util.Base64;
  * - Publish a new Address
  * - Publish a new Transaction
  */
-public class BlockchainClient {
+@SpringBootApplication
+public class BlockchainClient implements CommandLineRunner {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) {
+        new SpringApplicationBuilder(BlockchainClient.class)
+                .bannerMode(Banner.Mode.OFF)
+                .run(args);
+    }
+
+    private final RestTemplate restTemplate;
+
+    public BlockchainClient(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
         var parser = new DefaultParser();
         var options = getOptions();
         try {
@@ -38,11 +62,11 @@ public class BlockchainClient {
         } catch (ParseException e) {
             System.err.println(e.getMessage());
             HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("BlockchainClient", options, true);
+            formatter.printHelp(getClass().getSimpleName(), options, true);
         }
     }
 
-    private static void executeCommand(CommandLine line) throws Exception {
+    private void executeCommand(CommandLine line) throws Exception {
         if (line.hasOption("keypair")) {
             generateKeyPair();
         } else if (line.hasOption("address")) {
@@ -66,11 +90,11 @@ public class BlockchainClient {
         }
     }
 
-    private static Options getOptions() {
-        var actions = new OptionGroup();
-        actions.addOption(new Option("k", "keypair", false, "generate private/public key pair"));
-        actions.addOption(new Option("a", "address", false, "publish new address"));
-        actions.addOption(new Option("t", "transaction", false, "publish new transaction"));
+    private Options getOptions() {
+        var actions = new OptionGroup()
+                .addOption(new Option("k", "keypair", false, "generate private/public key pair"))
+                .addOption(new Option("a", "address", false, "publish new address"))
+                .addOption(new Option("t", "transaction", false, "publish new transaction"));
         actions.setRequired(true);
 
         var options = new Options();
@@ -115,29 +139,28 @@ public class BlockchainClient {
         return options;
     }
 
-    private static void generateKeyPair() throws NoSuchProviderException, NoSuchAlgorithmException, IOException {
+    private void generateKeyPair() throws NoSuchProviderException, NoSuchAlgorithmException, IOException {
         var keyPair = Signatures.generateKeyPair();
         Files.write(Paths.get("key.priv"), keyPair.getPrivate().getEncoded());
         Files.write(Paths.get("key.pub"), keyPair.getPublic().getEncoded());
     }
 
-    private static void publishAddress(URL node, Path publicKey, String name) throws IOException {
-        var restTemplate = new RestTemplate();
+    private void publishAddress(URL node, Path publicKey, String name) throws IOException, URISyntaxException {
         var address = new Address(name, Files.readAllBytes(publicKey));
-        restTemplate.put(node.toString() + "/address?publish=true", address);
+        restTemplate.put(new URL(node, "address?publish=true").toURI(), address);
         System.out.println("Hash of new address: " + Base64.getEncoder().encodeToString(address.getHash()));
     }
 
-    private static void publishTransaction(URL node, Path privateKey, String text, byte[] senderHash) throws Exception {
-        var restTemplate = new RestTemplate();
+    private void publishTransaction(URL node, Path privateKey, String text, byte[] senderHash) throws IOException, URISyntaxException, InvalidKeySpecException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
         var signature = Signatures.sign(text.getBytes(), Files.readAllBytes(privateKey));
         var transaction = new Transaction(
-                text.getBytes(StandardCharsets.UTF_8),
+                text.getBytes(UTF_8),
                 senderHash,
                 signature,
                 System.currentTimeMillis()
         );
-        restTemplate.put(node.toString() + "/transaction?publish=true", transaction);
+        restTemplate.put(new URL(node, "transaction?publish=true").toURI(), transaction);
         System.out.println("Hash of new transaction: " + Base64.getEncoder().encodeToString(transaction.getHash()));
     }
+
 }

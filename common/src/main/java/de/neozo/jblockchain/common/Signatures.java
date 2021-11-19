@@ -63,7 +63,7 @@ public final class Signatures {
      * @param privateKey to use for the signage process
      * @return signature of data which can be verified with corresponding public key
      */
-    public static byte[] sign(byte[] data, byte[] privateKey) throws Exception {
+    public static byte[] sign(byte[] data, byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException {
         // construct a PrivateKey-object from raw bytes
         var privateKeyObj = keyFactory.generatePrivate(
                 new PKCS8EncodedKeySpec(privateKey)
