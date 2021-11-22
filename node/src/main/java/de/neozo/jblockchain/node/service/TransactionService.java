@@ -61,8 +61,8 @@ public class TransactionService {
      * @param transactions Collection of Transactions to check
      * @return true if all Transactions are member of the pool
      */
-    public boolean containsAll(Collection<Transaction> transactions) {
-        return transactionPool.containsAll(transactions);
+    public boolean containsAll(Stream<Transaction> transactions) {
+        return transactions.allMatch(transactionPool::contains);
     }
 
     private boolean verify(Transaction transaction) {

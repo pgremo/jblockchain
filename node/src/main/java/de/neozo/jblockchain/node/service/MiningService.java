@@ -66,12 +66,11 @@ public class MiningService implements Runnable {
     public void run() {
         while (runMiner.get()) {
             var block = mineBlock();
-            if (block != null) {
-                // Found block! Append and publish
-                LOG.info("Mined block with {} transactions and nonce {}", block.getTransactions().size(), block.getNonce());
-                blockService.append(block);
-                nodeService.broadcastPut("block", block);
-            }
+            if (block == null) continue;
+            // Found block! Append and publish
+            LOG.info("Mined block with {} transactions and nonce {}", block.getTransactions().count(), block.getNonce());
+            blockService.append(block);
+            nodeService.broadcastPut("block", block);
         }
         LOG.info("Miner stopped");
     }
@@ -102,7 +101,7 @@ public class MiningService implements Runnable {
                     tries,
                     clock.millis()
             );
-            if (block.getLeadingZerosCount() >= difficulty) return block;
+            if (ProofOfWork.getLeadingZerosCount(block) >= difficulty) return block;
         }
         return null;
     }

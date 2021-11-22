@@ -2,19 +2,19 @@ package de.neozo.jblockchain.common;
 
 public final class Bytes {
     public static byte[] toByteArray(int value) {
-        var result = new byte[4];
+        var result = new byte[Integer.BYTES];
         for (var i = 3; i >= 0; i--) {
             result[i] = (byte) (value & 0xffL);
-            value >>= 4;
+            value >>= Integer.BYTES;
         }
         return result;
     }
 
     public static byte[] toByteArray(long value) {
-        var result = new byte[8];
+        var result = new byte[Long.BYTES];
         for (var i = 7; i >= 0; i--) {
             result[i] = (byte) (value & 0xffL);
-            value >>= 8;
+            value >>= Long.BYTES;
         }
         return result;
     }

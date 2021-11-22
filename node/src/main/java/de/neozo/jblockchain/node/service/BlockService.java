@@ -10,10 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Collections.addAll;
@@ -32,7 +31,7 @@ public class BlockService {
 
     private final TransactionService transactionService;
 
-    private final LinkedList<Block> blockchain = new LinkedList<>();
+    private final Deque<Block> blockchain = new LinkedList<>();
 
     @Autowired
     public BlockService(TransactionService transactionService) {
@@ -84,13 +83,13 @@ public class BlockService {
 
     private boolean verify(Block block) {
         // references last block in chain
-        if (blockchain.size() > 0) {
-            var lastBlockInChainHash = getLastBlock().getHash();
-            if (!Arrays.equals(block.getPreviousHash(), lastBlockInChainHash)) {
+        if (blockchain.isEmpty()) {
+            if (block.getPreviousHash() != null) {
                 return false;
             }
         } else {
-            if (block.getPreviousHash() != null) {
+            var lastBlockInChainHash = getLastBlock().getHash();
+            if (!Arrays.equals(block.getPreviousHash(), lastBlockInChainHash)) {
                 return false;
             }
         }
@@ -104,7 +103,7 @@ public class BlockService {
         }
 
         // transaction limit
-        if (block.getTransactions().size() > maxTransactionsPerBlock) {
+        if (block.getTransactions().count() > maxTransactionsPerBlock) {
             return false;
         }
 
@@ -114,6 +113,6 @@ public class BlockService {
         }
 
         // considered difficulty
-        return block.getLeadingZerosCount() >= difficulty;
+        return ProofOfWork.getLeadingZerosCount(block) >= difficulty;
     }
 }
