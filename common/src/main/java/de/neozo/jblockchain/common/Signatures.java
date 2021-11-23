@@ -1,10 +1,27 @@
 package de.neozo.jblockchain.common;
 
 
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+
+import java.io.IOException;
+import java.math.BigInteger;
 import java.security.*;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Instant;
+import java.util.Date;
+
+import static java.time.temporal.ChronoUnit.YEARS;
+import static org.bouncycastle.asn1.x509.Extension.basicConstraints;
 
 public final class Signatures {
 
@@ -15,8 +32,8 @@ public final class Signatures {
 
     static {
         try {
-            keyFactory = KeyFactory.getInstance("DSA", "SUN");
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            keyFactory = KeyFactory.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
@@ -26,13 +43,37 @@ public final class Signatures {
      *
      * @return KeyPair containing private and public key
      */
-    public static KeyPair generateKeyPair() throws NoSuchProviderException, NoSuchAlgorithmException {
-        var keyGen = KeyPairGenerator.getInstance("DSA", "SUN");
-        keyGen.initialize(
-                1024,
-                SecureRandom.getInstance("SHA1PRNG", "SUN")
-        );
-        return keyGen.generateKeyPair();
+    public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048, new SecureRandom());
+
+        return generator.generateKeyPair();
+
+    }
+
+    public static Certificate selfSign(KeyPair keyPair, X500Name dnName) throws OperatorCreationException, CertificateException, IOException {
+        var start = Instant.now();
+        var end = start.plus(1, YEARS);
+
+        var signer = new JcaContentSignerBuilder("SHA256WithRSA")
+                .build(keyPair.getPrivate());
+
+        var holder = new JcaX509v3CertificateBuilder(
+                dnName,
+                BigInteger.valueOf(start.toEpochMilli()),
+                Date.from(start),
+                Date.from(end),
+                dnName,
+                keyPair.getPublic()
+        ).addExtension(
+                basicConstraints,
+                true,
+                new BasicConstraints(true)
+        ).build(signer);
+
+        return new JcaX509CertificateConverter()
+                .setProvider(new BouncyCastleProvider())
+                .getCertificate(holder);
     }
 
     /**
@@ -43,7 +84,7 @@ public final class Signatures {
      * @param publicKey key to verify the data was signed by owner of corresponding private key
      * @return true if the signature verification succeeds.
      */
-    public static boolean verify(byte[] data, byte[] signature, byte[] publicKey) throws InvalidKeySpecException, NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    public static boolean verify(byte[] data, byte[] signature, byte[] publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         // construct a public key from raw bytes
         var publicKeyObj = keyFactory.generatePublic(
                 new X509EncodedKeySpec(publicKey)
@@ -63,7 +104,7 @@ public final class Signatures {
      * @param privateKey to use for the signage process
      * @return signature of data which can be verified with corresponding public key
      */
-    public static byte[] sign(byte[] data, byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException {
+    public static byte[] sign(byte[] data, byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         // construct a PrivateKey-object from raw bytes
         var privateKeyObj = keyFactory.generatePrivate(
                 new PKCS8EncodedKeySpec(privateKey)
@@ -76,8 +117,8 @@ public final class Signatures {
         return sig.sign();
     }
 
-    private static Signature getSignatureObj() throws NoSuchProviderException, NoSuchAlgorithmException {
-        return Signature.getInstance("SHA1withDSA", "SUN");
+    private static Signature getSignatureObj() throws NoSuchAlgorithmException {
+        return Signature.getInstance("SHA1withRSA");
     }
 
 }
