@@ -47,8 +47,8 @@ public class BlockService {
      *
      * @return Last Block in chain
      */
-    public Block getLastBlock() {
-        return blockchain.isEmpty() ? null : blockchain.getLast();
+    public byte[] getLastHash() {
+        return blockchain.isEmpty() ? null : blockchain.getLast().getHash();
     }
 
     /**
@@ -88,7 +88,7 @@ public class BlockService {
                 return false;
             }
         } else {
-            var lastBlockInChainHash = getLastBlock().getHash();
+            var lastBlockInChainHash = getLastHash();
             if (!Arrays.equals(block.getPreviousHash(), lastBlockInChainHash)) {
                 return false;
             }

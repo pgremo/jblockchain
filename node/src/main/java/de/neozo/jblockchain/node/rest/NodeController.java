@@ -50,7 +50,7 @@ public class NodeController {
      *
      * @param node the Node to remove
      */
-    @DeleteMapping()
+    @PostMapping()
     void removeNode(@RequestBody Node node) {
         LOG.info("Remove node {}", node.address());
         nodeService.remove(node);

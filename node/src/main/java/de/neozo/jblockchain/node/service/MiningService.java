@@ -2,6 +2,7 @@ package de.neozo.jblockchain.node.service;
 
 
 import de.neozo.jblockchain.common.domain.Block;
+import de.neozo.jblockchain.common.domain.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,8 +10,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
+import static de.neozo.jblockchain.node.service.ProofOfWork.getLeadingZerosCount;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -65,45 +71,41 @@ public class MiningService implements Runnable {
     @Override
     public void run() {
         while (runMiner.get()) {
-            var block = mineBlock();
-            if (block == null) continue;
-            // Found block! Append and publish
-            LOG.info("Mined block with {} transactions and nonce {}", block.getTransactions().count(), block.getNonce());
-            blockService.append(block);
-            nodeService.broadcastPut("block", block);
+            var transactions = transactionService.getTransactionPool()
+                    .limit(maxTransactionsPerBlock).collect(toList());
+
+            if (!transactions.isEmpty()) {
+                mine(transactions)
+                        .ifPresent(x -> {
+                            LOG.info("Mined block with {} transactions and nonce {}", x.getTransactions().count(), x.getNonce());
+                            blockService.append(x);
+                            nodeService.broadcastPut("block", x);
+                        });
+            } else {
+                LOG.info("No transactions available, pausing");
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    LOG.error("Thread interrupted", e);
+                }
+            }
         }
         LOG.info("Miner stopped");
     }
 
-    private Block mineBlock() {
-        // get previous hash and transactions
-        var transactions = transactionService.getTransactionPool()
-                .limit(maxTransactionsPerBlock).collect(toList());
-
-        // sleep if no more transactions left
-        if (transactions.isEmpty()) {
-            LOG.info("No transactions available, pausing");
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                LOG.error("Thread interrupted", e);
-            }
-            return null;
-        }
-
-        // try new block until difficulty is sufficient
-        var previousHash = blockService.getLastBlock() == null ? null : blockService.getLastBlock().getHash();
-        for (var tries = 0L; runMiner.get(); tries++) {
-            var block = new Block(
-                    previousHash,
-                    transactions,
-                    difficulty,
-                    tries,
-                    clock.millis()
-            );
-            if (ProofOfWork.getLeadingZerosCount(block) >= difficulty) return block;
-        }
-        return null;
+    private Optional<Block> mine(List<Transaction> transactions) {
+        var previousHash = blockService.getLastHash();
+        var nonce = new AtomicLong(0L);
+        return Stream
+                .generate(() -> new Block(
+                        previousHash,
+                        transactions,
+                        difficulty,
+                        nonce.getAndIncrement(),
+                        clock.millis()
+                ))
+                .filter(x -> runMiner.get())
+                .filter(x -> getLeadingZerosCount(x) >= difficulty)
+                .findFirst();
     }
-
 }
